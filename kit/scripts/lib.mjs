@@ -148,6 +148,8 @@ export function buildIndex(jobs = allJobs()) {
       return { b, fm: exists(pf) ? frontmatter(read(pf)) : {}, u: usage[`${t}/${b}`] || { used: [], good: 0 } };
     }).sort((x, y) => y.u.good - x.u.good || y.u.used.length - x.u.used.length || x.b.localeCompare(y.b));
     lines.push(`## ${t}`, '', '| 묶음 | 한줄 | 태그 | 쓴 작업 | 좋음 | 최근 작업 |', '|---|---|---|---|---|---|');
+    // 최근 작업 = 작업 폴더 이름 앞 날짜(YYYY-MM-DD)가 가장 늦은 것
+    for (const r of rows) r.u.used.sort((x, y) => x.split('/').at(-1).localeCompare(y.split('/').at(-1)));
     for (const { b, fm, u } of rows) {
       lines.push(`| [${b}](<${t}/${b}/패턴.md>) | ${cell(fm.한줄 || '(패턴 미작성)')} | ${[].concat(fm.태그 || []).join(' · ')} | ${u.used.length} | ${u.good} | ${u.used.at(-1) || ''} |`);
     }
