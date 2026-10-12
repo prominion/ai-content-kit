@@ -83,6 +83,15 @@ export const brandNames = () => (exists(p('brand'))
 export const defaultBrand = () => (exists(p('brand', '목록.md')) ? (read(p('brand', '목록.md')).match(/^기본:\s*(.+)$/m) || [])[1]?.trim() : null) || null;
 export const brandTemplate = (f) => read(p('kit', 'forms', 'brand', f));
 
+// 브랜드의 종류 폴더 5개와 각 폴더의 CLAUDE.md를 만든다 (없을 때만).
+// CLAUDE.md는 규칙 원본 kit/rules/<종류>.md를 불러오는 한 줄이라, 그 폴더의 파일을 다루면 Claude Code가 규칙을 자동으로 읽는다
+export function ensureTypeDirs(brand) {
+  for (const t of TYPES) {
+    const f = p('works', brand, t, 'CLAUDE.md');
+    if (!exists(f)) write(f, `<!-- 자동 생성 — ${t} 규칙 원본은 kit/rules/${t}.md 하나다. 고칠 때는 그 파일을 고친다 -->\n@../../../kit/rules/${t}.md\n`);
+  }
+}
+
 // 작업 폴더: works/<브랜드>/<종류>/<작업>/ (작업.md가 있는 곳)
 export function jobOf(f) {
   const [top, brand, type, name] = relParts(f);
@@ -170,7 +179,7 @@ export function jobSummary(j) {
   };
 }
 
-// works/목록.md (전체) · works/<브랜드>/목록.md · works/목록.json (연동용)
+// works/<브랜드>/목록.md (사람이 보는 목록, 브랜드마다 하나) · works/목록.json (연동용, 전체 하나)
 // 「진행 중」과 「완성」을 나눠 한눈에 보여 준다
 export function buildWorkLists(jobs = allJobs()) {
   const all = jobs.map(jobSummary).sort((a, b) => (b.만든날 || '').localeCompare(a.만든날 || '') || a.작업.localeCompare(b.작업));
@@ -198,11 +207,10 @@ export function buildWorkLists(jobs = allJobs()) {
     return `${out.join('\n')}\n`;
   };
   if (!exists(p('works'))) fs.mkdirSync(p('works'), { recursive: true });
-  writeAtomic(p('works', '목록.md'), render('전체 작업 목록', all, true, p('works')));
+  fs.rmSync(p('works', '목록.md'), { force: true }); // 예전 전체 목록 (브랜드별 목록 + 목록.json으로 대체)
   for (const b of [...new Set([...brandNames(), ...all.map((x) => x.브랜드)])]) {
-    const list = all.filter((x) => x.브랜드 === b);
-    if (!list.length && !exists(p('works', b))) continue;
-    writeAtomic(p('works', b, '목록.md'), render(`${b} 작업 목록`, list, false, p('works', b)));
+    ensureTypeDirs(b);
+    writeAtomic(p('works', b, '목록.md'), render(`${b} 작업 목록`, all.filter((x) => x.브랜드 === b), false, p('works', b)));
   }
   writeAtomic(p('works', '목록.json'), `${JSON.stringify({ $doc: '자동 생성. 다른 서비스(구글 시트 · Todoist · 노션) 연동은 이 파일을 읽는다. 원본은 각 작업.md', 작업: all }, null, 2)}\n`);
   return all;

@@ -8,7 +8,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {
-  TYPES, p, exists, read, write, nfc, slug, today, resolvePath, jobOf, allJobs, brandNames, defaultBrand, brandTemplate, buildAll, ok, bad, warn,
+  TYPES, p, exists, read, write, nfc, slug, today, resolvePath, jobOf, allJobs, brandNames, defaultBrand, brandTemplate, buildAll, ensureTypeDirs, ok, bad, warn,
 } from './lib.mjs';
 
 const args = process.argv.slice(2);
@@ -98,7 +98,7 @@ if (!exists(path.join(dir, 'profile.md'))) {
   write(path.join(dir, 'assets', '인증', '인증.md'), brandTemplate('인증.md'));
   write(path.join(dir, 'assets', '소재.md'), brandTemplate('소재.md').replaceAll('{{이름}}', name));
   for (const d of ['products', 'assets/프로필', 'assets/로고', 'assets/영상소스', 'assets/voice', 'assets/폰트', 'assets/bgm', 'assets/효과음', 'templates']) fs.mkdirSync(path.join(dir, d), { recursive: true });
-  fs.mkdirSync(p('works', name), { recursive: true });
+  ensureTypeDirs(name);
   ok(`brand/${name}/ 를 만들었습니다 — profile.md 를 채우세요`);
 } else if (!makeDefault) warn(`brand/${name}/ 는 이미 있습니다`);
 

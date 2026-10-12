@@ -4,7 +4,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {
-  TYPES, VIDEO_TYPES, p, exists, read, write, run, slug, today, hfVersion, brandNames, defaultBrand, brandTemplate, buildWorkLists, ok, bad, warn,
+  TYPES, VIDEO_TYPES, p, exists, read, write, run, slug, today, hfVersion, brandNames, defaultBrand, brandTemplate, buildWorkLists, ensureTypeDirs, ok, bad, warn,
 } from './lib.mjs';
 
 const args = process.argv.slice(2);
@@ -32,6 +32,7 @@ if (read(p('brand', brand, 'profile.md')) === brandTemplate('profile.md').replac
   warn(`brand/${brand}/profile.md 가 아직 빈 양식입니다 — 채우지 않으면 말투 · 색이 브랜드와 안 맞게 나옵니다`);
 }
 fs.mkdirSync(p('inbox'), { recursive: true });
+ensureTypeDirs(brand);
 
 // 폴더 이름: <날짜>-<이름>, 겹치면 -02, -03 …
 const base = `${today()}-${slug(rawName)}`;
