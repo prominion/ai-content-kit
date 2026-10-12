@@ -28,7 +28,6 @@ if (!exists(path.join(gifDir, 'hyperframes.json'))) {
   if (!w || !h) { bad(`--size 는 가로x세로 (예: 800x480): ${size}`); process.exit(1); }
   const r = hfInit(gifDir, {
     resolution: w >= h ? 'landscape' : 'portrait',
-    skill: 'motion-graphics',
     rules: `- 이 프로젝트는 ${job.type} 작업에 넣을 **GIF**용이다. 캔버스 ${w}×${h}. 장면 하나 = 2~3초, 글은 짧게, 숫자 · 후기 · 성과는 재료에 있는 것만.\n`
       + '- 여러 GIF는 한 구성에 장면(clip)을 이어 붙여 한 번에 렌더하고, `npm run gif -- <작업 폴더> --cut "이름:시작-끝,…"`으로 자른다.\n'
       + '- 렌더: `npx --yes hyperframes@' + hfVersion() + ' render --quality looks --output renders/gif.mp4` (check 통과 뒤).\n',

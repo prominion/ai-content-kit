@@ -49,19 +49,27 @@ export function copyFonts(dir) {
   return n;
 }
 
-// HyperFrames 프로젝트를 dir에 만든다 (버전 고정 · 전역 스킬 설치 끔). init이 만든 CLAUDE.md는 지우지 않고 키트 규칙을 앞에 붙인다
-export function hfInit(dir, { resolution = 'portrait', skill = 'general-video', rules = '' } = {}) {
+// HyperFrames 프로젝트를 dir에 만든다 (버전 고정 · 전역 스킬 설치 끔).
+// init이 만드는 CLAUDE.md · AGENTS.md(같은 내용 두 벌 — 키트에 없는 워크플로 10개 소개 · skills update 안내)는 키트 규칙 한 장으로 바꾼다.
+// 구성 규칙의 원문은 hyperframes-core 스킬에 있으므로 여기서는 가리키기만 한다.
+export function hfInit(dir, { resolution = 'portrait', rules = '' } = {}) {
   const v = hfVersion();
-  const r = run('npx', ['--yes', `hyperframes@${v}`, 'init', dir, '--non-interactive', '--example=blank', `--resolution=${resolution}`, `--skill=${skill}`],
+  const r = run('npx', ['--yes', `hyperframes@${v}`, 'init', dir, '--non-interactive', '--example=blank', `--resolution=${resolution}`, '--skill=hyperframes-core'],
     { cwd: p(), env: { ...process.env, HYPERFRAMES_SKIP_SKILLS: '1' } });
   if (!r.ok) return { ok: false, err: (r.err || r.out).slice(0, 500) };
-  const claude = path.join(dir, 'CLAUDE.md');
-  write(claude, `# 키트 규칙 (먼저 읽는다 — 아래 HyperFrames 원문과 다르면 이쪽이 우선)\n\n${rules}`
-    + `- **버전 고정**: \`npx hyperframes …\`처럼 버전 없이 부르지 않는다 (최신을 받아 온다). 항상 \`npx --yes hyperframes@${v} …\` 또는 \`npm run check / render / dev\`.\n`
-    + '- **`npx hyperframes skills update`는 쓰지 않는다** (홈 폴더 전역에 설치된다). 스킬은 키트 `.claude/skills/`에 이미 있다. 아래 원문의 "Standalone skill missing or stale?" 안내는 무시한다.\n'
-    + '- 명령은 이 폴더 안에서 실행한다. 폰트 · 효과음 · 음성은 이 폴더 `assets/`로 복사해서 쓴다 (상위 경로 참조 금지).\n'
-    + '- 기본 글꼴은 Pretendard (`assets/fonts/`, `@font-face`는 루트 `kit/assets/fonts/pretendard.css`의 네 줄을 HTML `<style>`에 붙인다).\n'
-    + `\n---\n\n${exists(claude) ? read(claude) : ''}`);
+  fs.rmSync(path.join(dir, 'AGENTS.md'), { force: true });
+  write(path.join(dir, 'CLAUDE.md'), [
+    '# HyperFrames 프로젝트 — 키트 규칙',
+    '',
+    rules.trimEnd(),
+    '- 구성(`index.html`)은 **`hyperframes-core` 스킬**의 계약대로 쓴다: 시간이 있는 요소는 `data-start` + 길이, 장면은 `class="clip"`, 구성마다 멈춘 루트 타임라인 하나를 `window.__timelines`에 등록, 소리 있는 영상은 `data-has-audio="true"`(음악 · 내레이션은 따로 `<audio>`), `Date.now` · `Math.random` · 네트워크 금지. 움직임은 `hyperframes-animation`, 명령 상세는 `hyperframes-cli`.',
+    '- `hyperframes` 입구 · `general-video` · `motion-graphics` 같은 워크플로 스킬은 거치지 않는다. 인터뷰 · 피칭 · 스토리보드 · `usage` 확인 · `upgrade` · `skills update`를 하지 않는다.',
+    `- 명령은 이 폴더에서: 고친 뒤 항상 \`npm run check\` · 장면 확인 \`npx --yes hyperframes@${v} snapshot --at <초,초,…>\` · 미리보기 \`npx --yes hyperframes@${v} preview --background\`(끝나면 \`--stop\`) · \`npm run render\`. 버전 없이 \`npx hyperframes …\`라고 부르지 않는다 (최신을 받아 온다).`,
+    '- 같은 요소에 `fromTo`를 두 번 걸면 앞 구간에 뒤 설정이 먼저 보인다 — lint 경고 `gsap_repeated_fromto_without_baseline`을 무시하지 않는다.',
+    '- 폰트 · 효과음 · 음성 · 영상은 이 폴더 `assets/`로 복사해서 쓴다 (상위 경로 참조 금지). 기본 글꼴 Pretendard는 `assets/fonts/`, `@font-face`는 루트 `kit/assets/fonts/pretendard.css`의 네 줄을 `<style>`에 붙인다.',
+    '- 구조: `index.html`(루트 구성) · `compositions/`(하위 구성, `data-composition-src`) · `assets/` · `renders/` · `transcript.json`(전사 단어 시간).',
+    '',
+  ].join('\n'));
   for (const d of ['assets', 'compositions', 'renders']) fs.mkdirSync(path.join(dir, d), { recursive: true });
   copyFonts(dir);
   return { ok: true, v };

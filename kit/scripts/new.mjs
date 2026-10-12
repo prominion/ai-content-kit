@@ -1,11 +1,12 @@
 // 새 작업 폴더 + 작업.md.
-// 편집/은 ① 브랜드 대표 템플릿이 있으면 그것을 복사 ② 없고 영상 종류(reels · longform · ad-creative)면 새 HyperFrames 프로젝트 ③ 아니면 빈 폴더.
-// 영상 종류는 편집/BRIEF.md를 작업.md에서 만들어 둔다 — HyperFrames는 BRIEF.md가 있으면 인터뷰 없이 바로 만든다 (general-video 워크플로).
-// 사용: npm run new -- <종류> "<이름>" [--brand <브랜드>] [--request "<요청 원문>"] [--no-hf]
+// 편집/은 ① 브랜드 대표 템플릿이 있으면 그것을 복사 (--no-template 이면 건너뜀 — "새 디자인으로" 요청)
+//        ② 없고 영상 종류(reels · longform · ad-creative)면 새 HyperFrames 프로젝트 (hyperframes-core 직행, 키트 규칙 CLAUDE.md 한 장)
+//        ③ 아니면 빈 폴더.
+// 사용: npm run new -- <종류> "<이름>" [--brand <브랜드>] [--request "<요청 원문>"] [--no-template] [--no-hf]
 import fs from 'node:fs';
 import path from 'node:path';
 import {
-  TYPES, VIDEO_TYPES, p, exists, read, write, slug, today, hfInit, hfVersion, copyFonts, brandNames, defaultBrand, brandTemplate, buildWorkLists, ok, bad, warn,
+  TYPES, VIDEO_TYPES, p, exists, read, write, slug, today, hfInit, copyFonts, brandNames, defaultBrand, brandTemplate, buildWorkLists, ok, bad, warn,
 } from './lib.mjs';
 
 const args = process.argv.slice(2);
@@ -14,6 +15,7 @@ const flag = (k) => { const i = args.indexOf(k); if (i < 0) return false; args.s
 const request = opt('--request') || '';
 const brandArg = opt('--brand');
 const noHF = flag('--no-hf');
+const noTemplate = flag('--no-template');
 const [type, ...rest] = args;
 const rawName = rest.join(' ');
 if (!TYPES.includes(type) || !rawName) {
@@ -43,44 +45,36 @@ const dir = p('works', type, name);
 // 편집/
 const edit = path.join(dir, '편집');
 const tpl = p('brand', brand, 'templates', type);
-let from = '';
-if (exists(tpl)) {
+let logLine = '';
+if (exists(tpl) && !noTemplate) {
   fs.cpSync(tpl, edit, { recursive: true, filter: (f) => path.basename(f) !== '템플릿.md' });
   if (VIDEO_TYPES.includes(type)) { for (const d of ['renders', 'assets']) fs.mkdirSync(path.join(edit, d), { recursive: true }); copyFonts(edit); }
-  from = `brand/${brand}/templates/${type}`;
-  ok(`편집/ — 대표 템플릿에서 시작 (${from})`);
+  logLine = `[결정] 대표 템플릿에서 시작 — brand/${brand}/templates/${type}`;
+  ok(`편집/ — 대표 템플릿에서 시작 (brand/${brand}/templates/${type}). 모양을 새로 하려면 --no-template`);
 } else if (VIDEO_TYPES.includes(type) && !noHF) {
   const res = type === 'longform' ? 'landscape' : 'portrait';
-  // init이 만든 CLAUDE.md(HyperFrames 규칙 · 명령표)는 지우지 않고 키트 규칙을 앞에 붙인다. AGENTS.md도 그대로 둔다
   const r = hfInit(edit, {
     resolution: res,
-    rules: `- 규칙은 루트 \`CLAUDE.md\`와 \`works/${type}/CLAUDE.md\`를 따른다. 브리프는 이 폴더의 \`BRIEF.md\`(작업.md에서 만들어짐) — 인터뷰 · 피칭 없이 바로 만든다.\n- 렌더는 메인 세션이 한 번에 하나씩 한다.\n`,
+    rules: `- 규칙은 루트 \`CLAUDE.md\`와 \`works/${type}/CLAUDE.md\`(규격 머리말이 우선). 요청 · 재료 · 구성 · 기록은 \`../작업.md\`.\n`
+      + `- 전사는 키트 루트에서 \`npm run transcribe -- works/${type}/<작업>/원본/<촬영본>\` → 단어 시간이 이 폴더 \`transcript.json\`으로 온다.\n`
+      + '- 렌더는 메인 세션이 한 번에 하나씩, 직전에 "렌더할까요?" 한 번 묻는다.\n',
   });
   if (!r.ok) { bad(`HyperFrames 프로젝트를 만들지 못했습니다:\n${r.err}`); process.exit(1); }
   ok(`편집/ — HyperFrames ${r.v} 프로젝트 (${res}) · 기본 글꼴 Pretendard`);
-} else fs.mkdirSync(edit, { recursive: true });
+} else {
+  fs.mkdirSync(edit, { recursive: true });
+  if (type === 'carousel') copyFonts(edit); // 카드는 로컬 HTML로 찍으므로 글꼴 파일이 옆에 있어야 한다
+}
+if (exists(tpl) && noTemplate) {
+  logLine = `[결정] 새 디자인 — 대표 템플릿(brand/${brand}/templates/${type})을 건너뜀 (--no-template)`;
+  ok('편집/ — 대표 템플릿을 건너뛰고 새로 시작 (--no-template)');
+}
 
 write(path.join(dir, '작업.md'), read(p('kit', 'forms', '작업.md'))
   .replaceAll('{{이름}}', name).replaceAll('{{종류}}', type).replaceAll('{{브랜드}}', brand).replaceAll('{{날짜}}', today())
   .replaceAll('{{요청}}', request || '(요청 원문을 그대로 적는다)')
-  .replace('## 5. 기록\n<!--', `## 5. 기록\n${from ? `- [결정] 대표 템플릿에서 시작 — ${from}\n` : ''}<!--`));
+  .replace('## 5. 기록\n<!--', `## 5. 기록\n${logLine ? `- ${logLine}\n` : ''}<!--`));
 for (const d of ['원본', '완성']) fs.mkdirSync(path.join(dir, d), { recursive: true });
-
-// 영상 종류: 편집/BRIEF.md — HyperFrames가 "브리프 질문을 하지 않는" 토큰. 머리말은 brief-format.md 어휘 그대로
-if (VIDEO_TYPES.includes(type)) {
-  const spec = { reels: ['1080x1920', '30s'], 'ad-creative': ['1080x1920', '30s'], longform: ['1920x1080', '300s'] }[type];
-  const msg = (request || rawName).replace(/"/g, "'").split('\n')[0].slice(0, 80);
-  write(path.join(edit, 'BRIEF.md'), [
-    '---', 'workflow: general-video', 'flow: automation', 'storyboard: no', `message: "${msg}"`,
-    `aspect: ${spec[0]}`, 'language: ko', `length: ${spec[1]}`, '---', '',
-    '## Intent', '', request || `${type} 작업 「${name}」. 요청 원문은 ../작업.md 「1. 요청」.`, '',
-    '## Assets', '', '../작업.md 「2. 재료」의 경로를 그대로 쓴다 (브랜드 profile · 레퍼런스 패턴.md · 원본/). 쓰는 파일은 이 폴더 assets/로 복사한다.', '',
-    '## Notes', '', `- 규격 · 기본값: ../../CLAUDE.md (works/${type}/CLAUDE.md). 길이 · 비율은 거기 머리말이 우선.`,
-    '- 브리프 · 피칭 · 스토리보드 질문을 하지 않는다. 정한 것은 ../작업.md 「5. 기록」에 적는다.',
-    '- 렌더는 메인 세션이 한 번에 하나씩 한다. 렌더 직전 "렌더할까요?" 한 번만 묻는다.',
-    `- 전사는 \`npx --yes hyperframes@${hfVersion()} transcribe … --model small --language ko\` (기본 모델은 영어로 번역한다).`, '',
-  ].join('\n'));
-}
 
 buildWorkLists();
 ok(`만들었습니다: works/${type}/${name}/  (브랜드: ${brand} — 목록은 brand/${brand}/작업목록.md)`);

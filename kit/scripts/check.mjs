@@ -21,11 +21,11 @@ const fail = (s) => { bad(s); fails++; };
 console.log(`검사: ${job.id}  (브랜드: ${job.brand || '없음'})`);
 if (!job.brand || !exists(p('brand', job.brand, 'profile.md'))) fail(`작업.md 머리말 「브랜드: ${job.brand}」 — brand/ 에 그 브랜드가 없습니다`);
 
-// 1. 작업.md 절 6개
+// 1. 작업.md — check와 목록이 실제로 읽는 절만 요구한다 (요청 · 재료 · 기록). 구성 · 버전 · 결과는 있으면 쓰고 없어도 ❌가 아니다
 const memo = read(path.join(dir, '작업.md'));
-const sections = ['1. 요청', '2. 재료', '3. 구성', '4. 버전', '5. 기록', '6. 결과'];
+const sections = ['1. 요청', '2. 재료', '5. 기록'];
 const missing = sections.filter((s) => !memo.includes(`## ${s}`));
-missing.length ? fail(`작업.md에 없는 절: ${missing.join(', ')}`) : ok('작업.md 절 6개');
+missing.length ? fail(`작업.md에 없는 절: ${missing.join(', ')}`) : ok('작업.md 절 (요청 · 재료 · 기록)');
 
 // 2. 재료 경로가 실제로 있나 (루트 기준, 없으면 작업 폴더 기준)
 const { sec, paths } = materialPaths(dir);
@@ -87,7 +87,10 @@ const isText = (f) => /\.(md|txt|html?)$/i.test(f);
 const textOf = (f) => (/\.html?$/i.test(f)
   ? read(f).replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/gi, ' ').replace(/data:[^"')\s]+/g, ' ').replace(/<[^>]+>/g, ' ')
   : read(f));
-const outTexts = [...files, path.join(dir, '대본.md')].filter((f) => exists(f) && isText(f));
+// PNG(캐러셀)는 글자가 이미지 안에 있으므로 카드를 만든 편집/ 바로 아래 HTML의 글을 대신 본다
+const editHtml = spec.output === 'png' && exists(path.join(dir, '편집'))
+  ? fs.readdirSync(path.join(dir, '편집')).filter((f) => /\.html?$/i.test(f)).map((f) => path.join(dir, '편집', f)) : [];
+const outTexts = [...files, ...editHtml, path.join(dir, '대본.md')].filter((f) => exists(f) && isText(f));
 if (outTexts.length) {
   const norm = (s) => s.replace(/[,\s]/g, '');
   const src = norm(sources.filter((s) => !bundleOf(s)).flatMap((s) => (fs.statSync(s).isDirectory() ? walk(s) : [s])).filter(isText).map(textOf).join('\n'));

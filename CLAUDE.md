@@ -28,20 +28,20 @@
 | 레퍼런스 저장 · 분석 · "이것처럼" · "받은함 정리해줘" | `reference` |
 | 상세페이지 · 랜딩페이지 | `detail-page` |
 | 릴스 · 쇼츠 | `reels` |
-| 유튜브 롱폼 | `longform` |
+| 유튜브 롱폼 · 가로 영상 편집 (컷 · 합치기 · 자막 · 그래픽 등 요청대로) | `longform` |
 | 캐러셀 · 카드뉴스 | `carousel` |
 | 광고 영상 소재 | `ad-creative` |
 | 내 목소리 학습 · 내레이션 | `voice` |
 | 브랜드 만들기 · "프로필 같이 채우자" · 내 자료를 한꺼번에 주며 "정리해줘" · 이름 바꾸기 · "이 후기 저장해줘" · "브랜드에 저장해줘" · "대표 템플릿으로 해줘" | `brand` |
-| 영상 편집 엔진 | `hyperframes` → `general-video` (컷 편집 · 자막 · 그래픽 · 내레이션 있는 영상 전부). 10초 안팎 · 말 없는 인서트 그래픽 한 컷만 `motion-graphics`. `편집/BRIEF.md`가 있으니 hyperframes의 인터뷰 · 피칭은 하지 않는다 |
-| 같은 종류 여러 개 한꺼번에 ("이 스타일로 릴스 5개") | 아래 「일괄 제작」 + 에이전트 `maker` |
+| 영상 편집 엔진 (영상 종류 전부 · GIF) | **`hyperframes-core`**(구성 계약)로 `편집/index.html`을 바로 쓴다. 움직임은 `hyperframes-animation`, 명령 상세는 `hyperframes-cli`. `hyperframes` 입구 · `general-video` · `motion-graphics` · `embedded-captions` · `talking-head-recut` 같은 워크플로 스킬은 거치지 않는다 (인터뷰 · 피칭 · `usage` · `upgrade` · `skills update`가 따라온다). "자막 넣어줘" · "그래픽 얹어줘"도 reels · longform 스킬의 일이다 |
+| 같은 종류 여러 개 한꺼번에 ("이 스타일로 릴스 5개") | 에이전트 `maker` — 메인 세션의 순서는 `.claude/agents/maker.md` (아직 실제로 검증하지 않음) |
 | "지금 뭐 만들고 있어?" · "완성된 거 보여줘" | `npm run works` 후 그 브랜드의 `brand/<브랜드>/작업목록.md`를 보여 준다. 전체를 물으면 `works/목록.json`을 읽어 브랜드별로 요약한다 |
 
 ## 작업 순서 (모든 종류 공통)
-1. 새 작업: `npm run new -- <종류> "<이름>" [--brand <브랜드>]` → `works/<종류>/<날짜>-<이름>/`. 어느 브랜드 일인지 요청에서 알 수 있으면 `--brand`, 모르면 기본 브랜드. **단 요청한 사업(업종 · 상품)이 기본 브랜드와 분명히 다르면 기본 브랜드에 넣지 않고 한 번 묻는다** ("새 브랜드로 만들까요, ○○ 브랜드 일인가요?"). 그 브랜드에 대표 템플릿이 있으면 `편집/`이 템플릿에서 시작한다 → 모양(레이아웃 · 색 · 글꼴 · 자막)은 템플릿을 따르고, 레퍼런스에서는 후킹 · 구성만 가져온다.
+1. 새 작업: `npm run new -- <종류> "<이름>" [--brand <브랜드>]` → `works/<종류>/<날짜>-<이름>/`. 어느 브랜드 일인지 요청에서 알 수 있으면 `--brand`, 모르면 기본 브랜드. **단 요청한 사업(업종 · 상품)이 기본 브랜드와 분명히 다르면 기본 브랜드에 넣지 않고 한 번 묻는다** ("새 브랜드로 만들까요, ○○ 브랜드 일인가요?"). 그 브랜드에 대표 템플릿이 있으면 `편집/`이 템플릿에서 시작한다 → 모양(레이아웃 · 색 · 글꼴 · 자막)은 템플릿을 따르고, 레퍼런스에서는 후킹 · 구성만 가져온다. **단 요청에 "새 디자인으로" · "이 레퍼런스처럼 디자인" · "모양을 바꿔" 같이 모양을 새로 하라는 말이 있으면 `--no-template`으로 만든다** (템플릿은 그대로 남고, 「5. 기록」에 적힌다).
 2. `작업.md` 「2. 재료」에 브랜드 · 레퍼런스 묶음 · 원본을 경로로 적는다 (루트 기준 `brand/…` · `references/…`, 이번 작업 파일은 `원본/…`). 레퍼런스는 가져올 것 / 가져오지 않을 것까지. 안 쓰면 `- 레퍼런스: 없음`.
 3. `works/<종류>/CLAUDE.md`의 규격을 지켜 만든다. 기본값 적용 순서: 요청 > `작업.md` > `brand/<브랜드>/profile.md` > 종류 CLAUDE.md 기본값.
-4. 결과는 `완성/v1-…/` 버전 폴더로 낸다. 이전 버전은 덮어쓰지 않는다.
+4. 결과는 `완성/v1-<특징>/` 버전 폴더로 낸다 (예 `v1-레퍼런스형`). **버전은 기본 하나.** 요청에 "하나 더" · "다른 버전도"가 있을 때만 `v2-<특징>/`을 더하고, 이전 버전은 덮어쓰지 않는다.
 5. `npm run check -- <작업 폴더>`에서 ❌가 없으면 `작업.md` 「4. 버전」 · 「5. 기록」을 채우고 머리말 `상태: 완성`. check가 레퍼런스 목록 · 작업 목록도 갱신한다. 끝나면 결정 요약을 표로 보여 준다 (무엇 · 왜 · 바꾸려면).
 6. 사용자가 올릴 버전을 정하면 `확정: <버전 폴더>`, 결과가 좋았다고 하면 `평가: 좋음`. 바꾼 뒤 `npm run works`.
 
@@ -49,13 +49,12 @@
 종류 스킬은 「멈춤 조건」일 때만 묻고 끝까지 간다. 재료에 없는 사실(가격 · 일정 · 후기 등)은 지어내지 않고 「입력 필요」로 비워 둔 채 끝까지 만든 다음, 마지막에 한꺼번에 묻는다.
 공용 파일(`brand/` · `references/*/패턴.md`)은 한 번에 한 세션만 고친다. 목록 파일(`brand/목록.md` 외의 `목록.md` · `작업목록.md` · `목록.json`)은 스크립트만 쓴다. 작업 중에는 자기 작업 폴더만 고친다.
 
-## 일괄 제작 (같은 종류 여러 개)
-1. 레퍼런스 저장 · 패턴 정리를 먼저 끝낸다 (에이전트는 공용 파일을 고치지 않는다).
-2. 만들 목록을 표로 보여 주고 확인받는다 (작업 이름 · 소재 · 레퍼런스).
-3. `npm run new`로 작업 폴더를 **하나씩 차례로** 만들고 각 `작업.md` 「1. 요청」 · 「2. 재료」를 채운다.
-4. 작업마다 에이전트 `maker`를 하나씩 **동시에** 띄운다 (작업 폴더 경로를 넘긴다).
-5. 영상 종류는 에이전트가 렌더 직전에 멈춘다 → 메인 세션이 **하나씩** 렌더하고 `check`.
-6. 결과를 표로 보여 준다 (작업 · 상태 · 결과 경로 · ❌/⚠️).
+## 전사 (영상의 말을 글로) · 정지 화면
+영상을 파악할 때는 전사(말 · 시간)와 정지 화면을 함께 본다. 전사는 `npm run transcribe -- <영상 파일 또는 링크> [--lang <원어>]` 하나로 한다. 정지 화면은 ffmpeg로 일정 간격으로 뽑아 한 장에 묶어(`-vf "fps=1/8,scale=640:-2,tile=4x3"`) Read로 보고, 쓰려는 구간은 더 촘촘히 본다. 출력은 scratchpad에 둔다.
+- 링크 → 올라와 있는 자막부터 (yt-dlp, 원어 자막 우선). 자막이 없거나 파일이면 → HyperFrames 전사 (whisper, 내 컴퓨터 · 무료).
+- 저장: 레퍼런스 영상 → 그 묶음 `대본/<영상>.md`, 작업의 영상 → `원본/전사-<영상>.md` (+ 단어 시간 `편집/transcript.json`, 자막용).
+- 자동 전사는 고유명사 · 외래어가 틀린다. 문맥으로 바로잡고 모르면 [?]. 사용자가 준 대본이 있으면 대본이 정답.
+- 정확도가 꼭 필요한 짧은 구간만 Fish Audio 음성 인식(1분 500크레딧) — 쓰기 전에 크레딧을 알린다.
 
 ## 명령
 ```bash
@@ -63,13 +62,14 @@ npm run brand                                               # 브랜드 목록 (
 npm run brand -- <이름> [--default]                         # 새 브랜드 폴더 / 기본 브랜드 지정
 npm run brand -- <이름> --template <작업 폴더> [--replace]   # 그 작업의 편집/을 대표 템플릿으로
 npm run brand -- <이름> --rename <새 이름>                  # 이름 바꾸기 (폴더 · 목록 · 지난 작업까지, 손으로 폴더만 바꾸지 않는다)
-npm run new -- <종류> "<이름>" [--brand <브랜드>] [--request "<요청 원문>"]   # 작업 폴더 + 작업.md
+npm run new -- <종류> "<이름>" [--brand <브랜드>] [--request "<요청 원문>"] [--no-template]   # 작업 폴더 + 작업.md (--no-template: 대표 템플릿을 건너뛰고 새 디자인)
 npm run check -- <작업 폴더>                                # 규격 · 재료 · 레퍼런스 · 확정 검사 + 목록 갱신
 npm run works                                               # 작업 목록 다시 만들기 (진행 중 · 완성)
 npm run reference -- references/<종류>/<묶음>                # 묶음 + 패턴.md, 영상 · 이미지면 한눈에 보는 시트/ · 측정.json
 npm run reference -- references/<종류>/<묶음> --download <주소 목록> [--referer <페이지>]   # 이미지 주소를 캡처/01.jpg … 로 받기
 npm run gif -- <작업 폴더> [--size 800x480]                   # 상세페이지 · 캐러셀용 GIF 프로젝트(편집/gif/) 만들기
 npm run gif -- <작업 폴더> --cut "이름:시작-끝,…"            # 렌더한 영상 → 편집/이미지/<이름>.gif
+npm run transcribe -- <영상 또는 링크> [--lang ko]              # 전사 → .md (링크는 자막 먼저, 없으면 whisper)
 npm run shot -- <HTML> [--width 375]                          # 휴대폰 폭으로 페이지 전체 캡처 → 편집/검사/
 npm run shot -- <HTML> --width 1080 --selector ".card" --out <폴더>   # 요소마다 PNG 한 장 (캐러셀 카드)
 npm run reference                                           # references/목록.md만 다시 만들기
@@ -77,8 +77,7 @@ npm run reference                                           # references/목록.
 
 ## 겪은 함정 (고칠 때마다 한 줄)
 - 하위 폴더에서 세션을 열면 루트 `.claude/settings.json`을 읽지 않는다 → 세션은 항상 이 폴더(루트)에서 연다.
-- HyperFrames 스킬은 이 키트 안(`.claude/skills/`)에 있다. `npx hyperframes skills update`는 홈 폴더(전역)에 설치하니 쓰지 않는다. 갱신 · 추가는 루트에서 `npx skills add heygen-com/hyperframes --skill <이름> -a claude-code -y`. 상태 확인은 `npx hyperframes skills check`.
-- `npx hyperframes transcribe`의 기본 모델(`small.en`)은 한국어를 영어로 번역해 버린다 → 항상 `--model small --language ko`.
-- `npx hyperframes …`처럼 버전 없이 부르면 고정 버전(`package.json`의 `config.hyperframes`)이 아니라 최신을 받아 온다 → 항상 `npx --yes hyperframes@0.8.144 …` 또는 `편집/`의 `npm run check / render`. 버전을 올릴 때는 이 숫자를 키트 전체에서 함께 바꾼다.
+- HyperFrames: 버전 없이 `npx hyperframes …`라고 부르면 고정 버전(`package.json`의 `config.hyperframes`)이 아니라 최신을 받아 온다 → 항상 `npx --yes hyperframes@0.8.144 …` 또는 `편집/`의 `npm run check / render` (버전을 올릴 때는 이 숫자를 키트 전체에서 함께 바꾼다). `npx hyperframes skills update`는 홈 폴더(전역)에 설치하니 쓰지 않는다 — 스킬은 키트 `.claude/skills/`에 있고, 갱신은 루트에서 `npx skills add heygen-com/hyperframes --skill <이름> -a claude-code -y`.
+- 전사는 `npm run transcribe`로만 (`npx hyperframes transcribe`를 직접 부르면 기본 모델이 한국어를 영어로 번역한다). 처음 한 번은 whisper.cpp 설치와 모델(약 490MB) 다운로드로 몇 분 걸린다고 미리 알린다.
 - Chrome 창은 약 590px보다 좁아지지 않아 Claude in Chrome으로는 휴대폰 폭을 볼 수 없다 → `npm run shot`.
 - 와디즈 등은 자동 접속(headless · WebFetch)을 막고, 상세 내용이 전부 이미지다 → Claude in Chrome으로 열어 이미지 주소를 모으고 `npm run reference -- <묶음> --download` (절차는 `reference` 스킬 0).
