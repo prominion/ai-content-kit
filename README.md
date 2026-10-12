@@ -5,9 +5,8 @@
 ## 준비물
 - Claude 유료 요금제 + Claude Code (데스크톱 앱 또는 터미널)
 - Node 22 이상, FFmpeg, yt-dlp (맥: `brew install node ffmpeg yt-dlp`)
-- 처음 전사(영상의 말을 글로)할 때 whisper.cpp와 음성 인식 모델(약 490MB)이 자동으로 설치됩니다. 몇 분 걸립니다.
-- 기본 글꼴 Pretendard는 키트에 들어 있습니다 (`kit/assets/fonts/`). 다른 폰트 · BGM · 효과음은 직접 넣습니다 (`kit/assets/` 또는 `brand/<사업>/assets/`).
 - Higgsfield · Fish Audio 계정과 크레딧 (이미지 · 음성을 쓸 때)
+- 그 밖에 저절로 설치되는 것(HyperFrames · whisper · Chrome · 기본 글꼴 Pretendard)과 도구마다 무엇에 쓰이고 돈이 드는지는 **`도구.md`** 한 장에 정리했습니다.
 
 ## 시작하기
 1. 이 폴더를 Claude Code로 엽니다. **항상 이 폴더에서 엽니다** (하위 폴더에서 열면 설정이 안 읽힙니다).
