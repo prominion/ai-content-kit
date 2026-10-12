@@ -31,7 +31,7 @@
 | 캐러셀 · 카드뉴스 | `carousel` |
 | 광고 영상 소재 | `ad-creative` |
 | 내 목소리 학습 · 내레이션 | `voice` |
-| 브랜드 만들기 · "이 후기 저장해줘" · "브랜드에 저장해줘" · "대표 템플릿으로 해줘" | `brand` |
+| 브랜드 만들기 · 이름 바꾸기 · "이 후기 저장해줘" · "브랜드에 저장해줘" · "대표 템플릿으로 해줘" | `brand` |
 | 영상 편집 엔진 | `hyperframes` → `motion-graphics` |
 | 같은 종류 여러 개 한꺼번에 ("이 스타일로 릴스 5개") | 아래 「일괄 제작」 + 에이전트 `maker` |
 
@@ -59,6 +59,7 @@
 npm run brand                                               # 브랜드 목록 (★ 기본 · 대표 템플릿)
 npm run brand -- <이름> [--default]                         # 새 브랜드 폴더 / 기본 브랜드 지정
 npm run brand -- <이름> --template <작업 폴더> [--replace]   # 그 작업의 편집/을 대표 템플릿으로
+npm run brand -- <이름> --rename <새 이름>                  # 이름 바꾸기 (폴더 · 목록 · 지난 작업까지, 손으로 폴더만 바꾸지 않는다)
 npm run new -- <종류> "<이름>" [--brand <브랜드>] [--request "<요청 원문>"]   # 작업 폴더 + 작업.md
 npm run check -- <작업 폴더>                                # 규격 · 재료 · 레퍼런스 기록 검사
 npm run reference -- references/<종류>/<묶음>                # 묶음 + 패턴.md, 영상이면 정지 화면 시트 · 측정

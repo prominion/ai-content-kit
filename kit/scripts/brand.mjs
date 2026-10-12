@@ -3,16 +3,18 @@
 //       npm run brand -- <이름> --default                    기본 브랜드로 지정
 //       npm run brand -- <이름> --template <작업 폴더> [--replace]
 //                                                            그 작업의 편집/을 이 브랜드의 대표 템플릿으로 저장
+//       npm run brand -- <이름> --rename <새 이름>             이름 바꾸기 (폴더 · 목록 · 프로필 제목 · 템플릿 · 지난 작업의 작업.md)
 //       npm run brand                                        브랜드 목록 보기
 import fs from 'node:fs';
 import path from 'node:path';
 import {
-  TYPES, p, exists, read, write, slug, today, resolvePath, relParts, brandNames, defaultBrand, brandTemplate, ok, bad, warn,
+  TYPES, p, exists, read, write, nfc, slug, today, resolvePath, relParts, brandNames, defaultBrand, brandTemplate, ok, bad, warn,
 } from './lib.mjs';
 
 const args = process.argv.slice(2);
 const opt = (k) => { const i = args.indexOf(k); if (i < 0) return null; const v = args[i + 1]; args.splice(i, 2); return v; };
 const flag = (k) => { const i = args.indexOf(k); if (i < 0) return false; args.splice(i, 1); return true; };
+const renameTo = opt('--rename');
 const tplJob = opt('--template');
 const replace = flag('--replace');
 const makeDefault = flag('--default');
@@ -32,6 +34,39 @@ if (!name) {
 }
 
 const dir = p('brand', name);
+
+// 이름 바꾸기
+if (renameTo) {
+  const to = slug(renameTo);
+  if (!brandNames().includes(name)) { bad(`brand/${name}/ 가 없습니다 (있는 것: ${brandNames().join(', ') || '없음'})`); process.exit(1); }
+  if (!to || to === name) { bad('새 이름이 비었거나 지금 이름과 같습니다'); process.exit(1); }
+  if (exists(p('brand', to))) { bad(`brand/${to}/ 가 이미 있습니다`); process.exit(1); }
+  const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  // 파일 글을 고친다 (바뀐 경우에만 쓴다)
+  const edit = (f, fn) => { const s = nfc(read(f)); const t = fn(s); if (t !== s) { write(f, t); return true; } return false; };
+
+  fs.renameSync(dir, p('brand', to));
+  ok(`폴더: brand/${name}/ → brand/${to}/`);
+  if (exists(listFile) && edit(listFile, (s) => s.replace(new RegExp(`^기본:\\s*${esc(name)}\\s*$`, 'm'), `기본: ${to}`).replace(new RegExp(`^- ${esc(name)}:`, 'm'), `- ${to}:`))) ok('brand/목록.md');
+  if (edit(p('brand', to, 'profile.md'), (s) => s.replace(new RegExp(`^# ${esc(name)}\\s*$`, 'm'), `# ${to}`))) ok('profile.md 제목');
+  const tdir = p('brand', to, 'templates');
+  for (const t of exists(tdir) ? fs.readdirSync(tdir) : []) {
+    const f = path.join(tdir, t, '템플릿.md');
+    if (exists(f) && edit(f, (s) => s.replace(new RegExp(`^# ${esc(name)} — `, 'm'), `# ${to} — `))) ok(`templates/${t}/템플릿.md 제목`);
+  }
+  // 지난 작업: 머리말 「브랜드:」와 재료 경로 brand/<이름>/
+  let n = 0;
+  for (const t of TYPES) {
+    const wdir = p('works', t);
+    for (const job of exists(wdir) ? fs.readdirSync(wdir) : []) {
+      const f = path.join(wdir, job, '작업.md');
+      if (exists(f) && edit(f, (s) => s.replace(new RegExp(`^브랜드:\\s*${esc(name)}\\s*$`, 'm'), `브랜드: ${to}`).replaceAll(`brand/${name}/`, `brand/${to}/`))) n++;
+    }
+  }
+  ok(`지난 작업의 작업.md ${n}개`);
+  console.log(`다른 세션이 이 브랜드로 작업 중이었다면 그 세션에 이름이 바뀌었다고 알려 주세요.`);
+  process.exit(0);
+}
 
 // 대표 템플릿 저장
 if (tplJob) {
