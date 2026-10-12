@@ -26,7 +26,8 @@ ask() { local a=""; if [ "$YES" = 1 ]; then printf '%s' "${2:-}"; return; fi; re
 confirm() { local a; a=$(ask "$1 [${2:-Y}/$([ "${2:-Y}" = Y ] && echo n || echo y)] " "${2:-Y}"); case "$a" in [Yy]*) return 0 ;; *) return 1 ;; esac; }
 
 [ "$(uname -s)" = "Darwin" ] || die "이 스크립트는 맥용입니다. 윈도우는 install.ps1 을 쓰세요."
-say "== AI 콘텐츠 키트 설치 =="
+say "== AI 콘텐츠 키트 설치 ==  처음이면 5~10분. 가장 오래 걸리는 것은 렌더용 Chrome(수백 MB)이고 진행 표시가 보입니다."
+say "[1/5] 준비물 확인"
 
 # ① 준비물
 if ! command -v brew >/dev/null 2>&1; then
@@ -53,6 +54,7 @@ ok "준비물: git · node $(node -v) · ffmpeg · yt-dlp"
 command -v claude >/dev/null 2>&1 || warn "Claude Code 명령(claude)이 보이지 않습니다. 데스크톱 앱을 쓰면 괜찬습니다. 터미널에서 쓰려면: npm install -g @anthropic-ai/claude-code"
 
 # ② 폴더
+say "[2/5] 설치 폴더"
 if [ -z "$DIR" ]; then
   say "어디에 설치할까요? Finder에서 폴더를 이 창에 끌어다 놓고 Enter."
   echo "   그냥 Enter를 누르면: $DEFAULT_DIR"
@@ -71,6 +73,7 @@ case "$DIR" in
 esac
 
 # ③ 받기 · 업데이트
+say "[3/5] 키트 받기"
 if [ -d "$DIR/.git" ] && [ -f "$DIR/kit/scripts/lib.mjs" ]; then
   say "이미 키트가 있습니다 → 업데이트합니다: $DIR"
   git -C "$DIR" pull --ff-only || die "업데이트 실패. 키트 파일을 직접 고친 게 있으면 되돌린 뒤 다시 실행하세요."
@@ -85,22 +88,26 @@ else
 fi
 git -C "$DIR" config core.quotepath false   # 한글 파일 이름이 깨져 보이지 않게
 
-# ④ 미리 받아 두기 (수업 중 몇 분씩 기다리지 않게)
+# ④ 미리 받아 두기 (수업 중 몇 분씩 기다리지 않게) — 진행 표시가 보이게 출력을 숨기지 않는다
+say "[4/5] 미리 받아 두기 (수업 중 기다리지 않게)"
 if [ "$PREFETCH" = 1 ]; then
   HF=$(node -p "require(process.argv[1]).config.hyperframes" "$DIR/package.json")
-  say "미리 받아 둡니다: HyperFrames $HF · 캡처 · 렌더용 Chrome (몇 분)"
-  if (cd "$DIR" && npx --yes "hyperframes@$HF" --version >/dev/null 2>&1); then ok "HyperFrames $HF"; else warn "HyperFrames 미리 받기 실패 — 처음 영상 작업 때 받습니다"; fi
-  if (cd "$DIR" && npx --yes "hyperframes@$HF" browser ensure >/dev/null 2>&1); then ok "Chrome"; else warn "Chrome 미리 받기 실패 — 처음 캡처 · 렌더 때 받습니다"; fi
+  echo "HyperFrames $HF 받기 (1~2분)…"
+  if (cd "$DIR" && npx --yes "hyperframes@$HF" --version); then ok "HyperFrames $HF"; else warn "HyperFrames 미리 받기 실패 — 처음 영상 작업 때 받습니다"; fi
+  echo "렌더 · 캡처용 Chrome 받기 (수백 MB, 몇 분)… 아래 진행 표시는 HyperFrames가 보여 줍니다"
+  if (cd "$DIR" && npx --yes "hyperframes@$HF" browser ensure); then ok "Chrome"; else warn "Chrome 미리 받기 실패 — 처음 캡처 · 렌더 때 받습니다"; fi
   if confirm "전사용 whisper(약 490MB)도 지금 받을까요? 안 받으면 첫 전사 때 몇 분 걸립니다." n; then
     tmp=$(mktemp -d)
     ffmpeg -v error -f lavfi -i anullsrc=r=16000:cl=mono -t 1 "$tmp/silent.wav"
-    if (cd "$DIR" && npx --yes "hyperframes@$HF" transcribe "$tmp/silent.wav" --dir "$tmp" --model small --language ko >/dev/null 2>&1); then ok "whisper 준비 끝"; else warn "whisper 준비를 시도했습니다. 첫 전사 때 더 받을 게 있으면 그때 받습니다"; fi
+    if (cd "$DIR" && npx --yes "hyperframes@$HF" transcribe "$tmp/silent.wav" --dir "$tmp" --model small --language ko); then ok "whisper 준비 끝"; else warn "whisper 준비를 시도했습니다. 첫 전사 때 더 받을 게 있으면 그때 받습니다"; fi
     rm -rf "$tmp"
   fi
+else
+  warn "건너뜀 (--skip-prefetch). 처음 영상 작업 때 받습니다."
 fi
 
 # ⑤ 끝
-say "설치가 끝났습니다: $DIR"
+say "[5/5] 끝 — 설치가 끝났습니다: $DIR"
 echo "다음: 이 폴더를 Claude Code로 엽니다 (항상 이 폴더에서 엽니다)."
 echo "  터미널:      cd \"$DIR\" && claude"
 echo "  데스크톱 앱:  폴더 열기 → $DIR"

@@ -96,5 +96,6 @@ npm run reference                                           # references/목록.
 - 하위 폴더에서 세션을 열면 루트 `.claude/settings.json`을 읽지 않는다 → 세션은 항상 이 폴더(루트)에서 연다.
 - HyperFrames: 버전 없이 `npx hyperframes …`라고 부르면 고정 버전(`package.json`의 `config.hyperframes`)이 아니라 최신을 받아 온다 → 항상 `편집/`의 `npm run check / render`, 직접 부를 때는 `npx --yes hyperframes@<package.json의 버전> …` (`편집/CLAUDE.md`에 버전이 적혀 있다). `npx hyperframes skills update`는 홈 폴더(전역)에 설치하니 쓰지 않는다 — 스킬은 키트 `.claude/skills/`에 있고, 갱신은 루트에서 `npx skills add heygen-com/hyperframes --skill <이름> -a claude-code -y`.
 - 전사는 `npm run transcribe`로만 (`npx hyperframes transcribe`를 직접 부르면 기본 모델이 한국어를 영어로 번역한다). 처음 한 번은 whisper.cpp 설치와 모델(약 490MB) 다운로드로 몇 분 걸린다고 미리 알린다.
+- 윈도우 PowerShell 5.1의 `irm … | iex`는 한글이 든 스크립트를 CP949로 읽어 깨뜨린다 (param 줄까지 깨져 엉뚱한 폴더에 설치됨) → 수강생 한 줄은 ASCII만 있는 `kit/install/win.ps1`이 `install.ps1`을 바이트로 받아 UTF-8로 풀어 실행한다. `install.ps1`은 UTF-8(BOM) · CRLF로 저장한다.
 - Chrome 창은 약 590px보다 좁아지지 않아 Claude in Chrome으로는 휴대폰 폭을 볼 수 없다 → `npm run shot`.
 - 와디즈 등은 자동 접속(headless · WebFetch)을 막고, 상세 내용이 전부 이미지다 → Claude in Chrome으로 열어 이미지 주소를 모으고 `npm run reference -- <묶음> --download` (절차는 `reference` 스킬 0).
