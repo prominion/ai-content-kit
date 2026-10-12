@@ -83,7 +83,7 @@ if (tplJob) {
     ok(`이전 템플릿 → ${path.relative(p(), bak)}`);
   }
   // 이 작업에만 쓰인 것(렌더 결과 · 음성 · 생성 이미지 · 검사 결과)은 빼고 복사
-  const skip = new Set(['renders', 'node_modules', '음성', '이미지', '검사', '.thumbnails']);
+  const skip = new Set(['renders', 'node_modules', '음성', '이미지', '검사', '.thumbnails', 'BRIEF.md']); // BRIEF.md는 작업마다 새로 만든다
   fs.cpSync(src, dest, { recursive: true, filter: (f) => !skip.has(path.basename(f)) });
   write(path.join(dest, '템플릿.md'), `# ${name} — ${type} 대표 템플릿\n\n- 출처 작업: works/${j.id}\n- 저장일: ${today()}\n- 새 ${type} 작업은 \`npm run new\`가 이 폴더를 편집/으로 복사해서 시작한다. 글 · 영상 소스만 바꾸고 레이아웃 · 색 · 글꼴 · 자막 스타일은 유지한다.\n`);
   ok(`대표 템플릿 저장: brand/${name}/templates/${type}/ (출처 ${j.id})`);
