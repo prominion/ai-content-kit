@@ -98,6 +98,9 @@ if (outTexts.length) {
   else if (found.length) ok(`결과물 숫자 ${found.length}개 모두 재료에 있음`);
 }
 
+// 5-1. 프로필의 「(AI 제안)」 표시가 결과물에 따라 들어갔나
+for (const f of outTexts) if (read(f).includes('(AI 제안)')) fail(`${rel(f)}: 「(AI 제안)」 표시가 결과물에 남아 있습니다 — 빼고 쓰세요`);
+
 // 6. 확정 버전이 실제로 있나
 const fm = frontmatter(memo);
 if (fm.확정 && !exists(path.join(dir, '완성', fm.확정))) fail(`확정: ${fm.확정} — 완성/${fm.확정}/ 폴더가 없습니다`);
