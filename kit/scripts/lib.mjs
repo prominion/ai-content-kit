@@ -25,7 +25,7 @@ export function resolvePath(arg) {
   const bases = [process.env.INIT_CWD, process.cwd(), ROOT].filter(Boolean);
   return bases.map((b) => path.resolve(b, arg)).find(exists) || path.resolve(ROOT, arg);
 }
-// 루트 기준 경로 조각: works/브랜드1/reels/2026-10-20-x → ['works', '브랜드1', 'reels', '2026-10-20-x']
+// 루트 기준 경로 조각: works/reels/2026-10-20-x → ['works', 'reels', '2026-10-20-x']
 export const relParts = (f) => nfc(path.relative(ROOT, f)).split(path.sep);
 
 // 외부 명령 실행
@@ -83,28 +83,26 @@ export const brandNames = () => (exists(p('brand'))
 export const defaultBrand = () => (exists(p('brand', '목록.md')) ? (read(p('brand', '목록.md')).match(/^기본:\s*(.+)$/m) || [])[1]?.trim() : null) || null;
 export const brandTemplate = (f) => read(p('kit', 'forms', 'brand', f));
 
-// 브랜드의 종류 폴더 5개와 각 폴더의 CLAUDE.md를 만든다 (없을 때만).
-// CLAUDE.md는 규칙 원본 kit/rules/<종류>.md를 불러오는 한 줄이라, 그 폴더의 파일을 다루면 Claude Code가 규칙을 자동으로 읽는다
-export function ensureTypeDirs(brand) {
-  for (const t of TYPES) {
-    const f = p('works', brand, t, 'CLAUDE.md');
-    if (!exists(f)) write(f, `<!-- 자동 생성 — ${t} 규칙 원본은 kit/rules/${t}.md 하나다. 고칠 때는 그 파일을 고친다 -->\n@../../../kit/rules/${t}.md\n`);
-  }
-}
-
-// 작업 폴더: works/<브랜드>/<종류>/<작업>/ (작업.md가 있는 곳)
+// 작업 폴더: works/<종류>/<작업>/ (작업.md가 있는 곳). 어느 브랜드 작업인지는 작업.md 머리말 「브랜드:」
 export function jobOf(f) {
-  const [top, brand, type, name] = relParts(f);
-  return top === 'works' && brand && TYPES.includes(type) && name && exists(p('works', brand, type, name, '작업.md'))
-    ? { brand, type, name, dir: p('works', brand, type, name), id: `${brand}/${type}/${name}` } : null;
+  const [top, type, name] = relParts(f);
+  const dir = top === 'works' && TYPES.includes(type) && name ? p('works', type, name) : null;
+  if (!dir || !exists(path.join(dir, '작업.md'))) return null;
+  const brand = String(frontmatter(read(path.join(dir, '작업.md'))).브랜드 || '');
+  return { brand, type, name, dir, id: `${type}/${name}` };
 }
 export function allJobs() {
   const out = [];
-  const sub = (d) => (exists(d) ? fs.readdirSync(d, { withFileTypes: true }).filter((x) => x.isDirectory() && !x.name.startsWith('.')).map((x) => nfc(x.name)).sort() : []);
-  for (const b of sub(p('works'))) for (const t of sub(p('works', b)).filter((x) => TYPES.includes(x))) {
-    for (const n of sub(p('works', b, t))) { const j = jobOf(p('works', b, t, n)); if (j) out.push(j); }
+  for (const t of TYPES) {
+    const d = p('works', t);
+    if (!exists(d)) continue;
+    for (const x of fs.readdirSync(d, { withFileTypes: true })) {
+      if (!x.isDirectory() || x.name.startsWith('.')) continue;
+      const j = jobOf(path.join(d, x.name));
+      if (j) out.push(j);
+    }
   }
-  return out;
+  return out.sort((a, b) => a.id.localeCompare(b.id));
 }
 
 // 작업.md 「2. 재료」의 `경로` 목록. 경로는 루트 기준(brand/… · references/… · works/…),
@@ -139,7 +137,7 @@ export function buildIndex(jobs = allJobs()) {
       if (good) u.good++;
     }
   }
-  const lines = ['# 레퍼런스 목록', '', '<!-- 자동 생성 (npm run reference · npm run check). 손으로 고치지 않는다. 쓴 작업 · 좋음은 works/**/작업.md에서 센다 -->', ''];
+  const lines = ['# 레퍼런스 목록', '', '<!-- 자동 생성 (npm run reference · npm run check). 손으로 고치지 않는다. 쓴 작업 · 좋음은 works/*/*/작업.md에서 센다 -->', ''];
   let total = 0;
   for (const t of TYPES) {
     const rdir = p('references', t);
@@ -179,39 +177,36 @@ export function jobSummary(j) {
   };
 }
 
-// works/<브랜드>/목록.md (사람이 보는 목록, 브랜드마다 하나) · works/목록.json (연동용, 전체 하나)
-// 「진행 중」과 「완성」을 나눠 한눈에 보여 준다
+// brand/<브랜드>/작업목록.md (사람이 보는 목록, 브랜드마다 하나) · works/목록.json (연동용, 전체 하나)
+// 결과물은 works/에 그대로 있고, 목록은 그 브랜드 작업만 모아 링크로 보여 준다. 「진행 중」과 「완성」을 나눠 한눈에
 export function buildWorkLists(jobs = allJobs()) {
   const all = jobs.map(jobSummary).sort((a, b) => (b.만든날 || '').localeCompare(a.만든날 || '') || a.작업.localeCompare(b.작업));
   const isDone = (x) => x.상태 === '완성';
-  const render = (title, list, showBrand, base) => {
-    const link = (x, target) => `<${path.relative(base, p(target)).split(path.sep).join('/')}>`;
+  const render = (b, list) => {
+    const base = p('brand', b);
+    const link = (target) => `<${path.relative(base, p(target)).split(path.sep).join('/')}>`;
     const doing = list.filter((x) => !isDone(x));
     const done = list.filter(isDone);
-    const B = showBrand ? ' 브랜드 |' : '';
-    const BS = showBrand ? '---|' : '';
-    const out = [`# ${title}`, '', '<!-- 자동 생성 (npm run new · npm run check · npm run works). 손으로 고치지 않는다. 내용은 각 작업.md에서 읽는다 -->', '',
+    const out = [`# ${b} 작업 목록`, '', '<!-- 자동 생성 (npm run new · npm run check · npm run works). 손으로 고치지 않는다. 결과물은 works/에 있고, 내용은 각 작업.md에서 읽는다 -->', '',
       `진행 중 ${doing.length} · 완성 ${done.length}`, '', `## 🔨 진행 중 (${doing.length})`, ''];
     if (doing.length) {
-      out.push(`|${B} 종류 | 작업 | 상태 | 시작 | 최근 기록 |`, `|${BS}---|---|---|---|---|`);
-      for (const x of doing) out.push(`|${showBrand ? ` ${x.브랜드} |` : ''} ${x.종류} | [${x.작업}](${link(x, `${x.경로}/작업.md`)}) | ${x.상태} | ${x.만든날} | ${cell(x.최근기록)} |`);
+      out.push('| 종류 | 작업 | 상태 | 시작 | 최근 기록 |', '|---|---|---|---|---|');
+      for (const x of doing) out.push(`| ${x.종류} | [${x.작업}](${link(`${x.경로}/작업.md`)}) | ${x.상태} | ${x.만든날} | ${cell(x.최근기록)} |`);
     } else out.push('(없음)');
     out.push('', `## ✅ 완성 (${done.length})`, '');
     if (done.length) {
-      out.push(`|${B} 종류 | 작업 | 확정본 | 버전 | 평가 | 레퍼런스 | 만든 날 |`, `|${BS}---|---|---|---|---|---|---|`);
+      out.push('| 종류 | 작업 | 확정본 | 버전 | 평가 | 레퍼런스 | 만든 날 |', '|---|---|---|---|---|---|---|');
       for (const x of done) {
-        const final = x.확정 ? `[${x.확정}](${link(x, x.확정경로)})` : x.버전.length ? `(미확정) [${x.버전.at(-1)}](${link(x, `${x.경로}/완성/${x.버전.at(-1)}`)})` : '—';
-        out.push(`|${showBrand ? ` ${x.브랜드} |` : ''} ${x.종류} | [${x.작업}](${link(x, `${x.경로}/작업.md`)}) | ${final} | ${x.버전.length} | ${x.평가} | ${x.레퍼런스.join(', ')} | ${x.만든날} |`);
+        const final = x.확정 ? `[${x.확정}](${link(x.확정경로)})` : x.버전.length ? `(미확정) [${x.버전.at(-1)}](${link(`${x.경로}/완성/${x.버전.at(-1)}`)})` : '—';
+        out.push(`| ${x.종류} | [${x.작업}](${link(`${x.경로}/작업.md`)}) | ${final} | ${x.버전.length} | ${x.평가} | ${x.레퍼런스.join(', ')} | ${x.만든날} |`);
       }
     } else out.push('(없음)');
     return `${out.join('\n')}\n`;
   };
+  for (const b of brandNames()) writeAtomic(p('brand', b, '작업목록.md'), render(b, all.filter((x) => x.브랜드 === b)));
+  const orphan = all.filter((x) => !brandNames().includes(x.브랜드));
+  if (orphan.length) console.log(`⚠️  브랜드 폴더가 없는 작업 ${orphan.length}개: ${orphan.map((x) => `${x.경로} (브랜드: ${x.브랜드 || '없음'})`).join(', ')}`);
   if (!exists(p('works'))) fs.mkdirSync(p('works'), { recursive: true });
-  fs.rmSync(p('works', '목록.md'), { force: true }); // 예전 전체 목록 (브랜드별 목록 + 목록.json으로 대체)
-  for (const b of [...new Set([...brandNames(), ...all.map((x) => x.브랜드)])]) {
-    ensureTypeDirs(b);
-    writeAtomic(p('works', b, '목록.md'), render(`${b} 작업 목록`, all.filter((x) => x.브랜드 === b), false, p('works', b)));
-  }
   writeAtomic(p('works', '목록.json'), `${JSON.stringify({ $doc: '자동 생성. 다른 서비스(구글 시트 · Todoist · 노션) 연동은 이 파일을 읽는다. 원본은 각 작업.md', 작업: all }, null, 2)}\n`);
   return all;
 }

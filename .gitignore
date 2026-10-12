@@ -2,8 +2,10 @@
 /brand/
 /references/
 
-# 작업 폴더 — 결과물 · 작업 목록 (내 자료)
-/works/
+# 작업 폴더 — 종류별 CLAUDE.md(규칙)만 키트에 포함, 작업 · 연동용 목록은 내 자료
+/works/*/*
+!/works/*/CLAUDE.md
+/works/목록.json
 
 # 개인 설정
 .claude/settings.local.json

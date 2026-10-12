@@ -1,6 +1,6 @@
 // 작업 검사. ❌가 있으면 완성이 아니다. ⚠️는 확인하라는 뜻. 끝나면 레퍼런스 목록 · 작업 목록을 다시 만든다.
-// 사용: npm run check -- <작업 폴더>   예) works/브랜드1/reels/2026-10-20-편집노가다
-// 규격은 kit/rules/<종류>.md 머리말에서 읽는다.
+// 사용: npm run check -- <작업 폴더>   예) works/reels/2026-10-20-편집노가다
+// 규격은 works/<종류>/CLAUDE.md 머리말에서 읽는다.
 import fs from 'node:fs';
 import path from 'node:path';
 import {
@@ -10,15 +10,16 @@ import {
 const arg = process.argv[2];
 const job = arg && jobOf(resolvePath(arg));
 if (!job) {
-  bad('작업 폴더를 찾지 못했습니다. 사용법: npm run check -- works/<브랜드>/<종류>/<작업 이름>');
+  bad('작업 폴더를 찾지 못했습니다. 사용법: npm run check -- works/<종류>/<작업 이름>');
   process.exit(1);
 }
 const { dir, type } = job;
-const spec = frontmatter(read(p('kit', 'rules', `${type}.md`)));
+const spec = frontmatter(read(p('works', type, 'CLAUDE.md')));
 const rel = (f) => path.relative(dir, f);
 let fails = 0;
 const fail = (s) => { bad(s); fails++; };
-console.log(`검사: ${job.id}`);
+console.log(`검사: ${job.id}  (브랜드: ${job.brand || '없음'})`);
+if (!job.brand || !exists(p('brand', job.brand, 'profile.md'))) fail(`작업.md 머리말 「브랜드: ${job.brand}」 — brand/ 에 그 브랜드가 없습니다`);
 
 // 1. 작업.md 절 6개
 const memo = read(path.join(dir, '작업.md'));

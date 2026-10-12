@@ -8,7 +8,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {
-  TYPES, p, exists, read, write, nfc, slug, today, resolvePath, jobOf, allJobs, brandNames, defaultBrand, brandTemplate, buildAll, ensureTypeDirs, ok, bad, warn,
+  TYPES, p, exists, read, write, nfc, slug, today, resolvePath, jobOf, allJobs, brandNames, defaultBrand, brandTemplate, buildAll, ok, bad, warn,
 } from './lib.mjs';
 
 const args = process.argv.slice(2);
@@ -47,7 +47,6 @@ if (renameTo) {
 
   fs.renameSync(dir, p('brand', to));
   ok(`폴더: brand/${name}/ → brand/${to}/`);
-  if (exists(p('works', name))) { fs.renameSync(p('works', name), p('works', to)); ok(`폴더: works/${name}/ → works/${to}/`); }
   if (exists(listFile) && edit(listFile, (s) => s.replace(new RegExp(`^기본:\\s*${esc(name)}\\s*$`, 'm'), `기본: ${to}`).replace(new RegExp(`^- ${esc(name)}:`, 'm'), `- ${to}:`))) ok('brand/목록.md');
   if (edit(p('brand', to, 'profile.md'), (s) => s.replace(new RegExp(`^# ${esc(name)}\\s*$`, 'm'), `# ${to}`))) ok('profile.md 제목');
   const tdir = p('brand', to, 'templates');
@@ -55,11 +54,11 @@ if (renameTo) {
     const f = path.join(tdir, t, '템플릿.md');
     if (exists(f) && edit(f, (s) => s.replace(new RegExp(`^# ${esc(name)} — `, 'm'), `# ${to} — `))) ok(`templates/${t}/템플릿.md 제목`);
   }
-  // 지난 작업: 머리말 「브랜드:」와 재료 경로 brand/<이름>/ · works/<이름>/ (다른 브랜드 작업이 이 브랜드 자료를 쓴 경우도)
+  // 지난 작업: 머리말 「브랜드:」와 재료 경로 brand/<이름>/ (다른 브랜드 작업이 이 브랜드 자료를 쓴 경우도)
   let n = 0;
   for (const j of allJobs()) {
     const f = path.join(j.dir, '작업.md');
-    if (edit(f, (s) => s.replace(new RegExp(`^브랜드:\\s*${esc(name)}\\s*$`, 'm'), `브랜드: ${to}`).replaceAll(`brand/${name}/`, `brand/${to}/`).replaceAll(`works/${name}/`, `works/${to}/`))) n++;
+    if (edit(f, (s) => s.replace(new RegExp(`^브랜드:\\s*${esc(name)}\\s*$`, 'm'), `브랜드: ${to}`).replaceAll(`brand/${name}/`, `brand/${to}/`))) n++;
   }
   ok(`작업.md ${n}개`);
   buildAll();
@@ -72,7 +71,7 @@ if (tplJob) {
   if (!exists(path.join(dir, 'profile.md'))) { bad(`brand/${name}/ 가 없습니다`); process.exit(1); }
   const j = jobOf(resolvePath(tplJob));
   const src = j && path.join(j.dir, '편집');
-  if (!j || !exists(src)) { bad('작업 폴더를 찾지 못했습니다: works/<브랜드>/<종류>/<작업>'); process.exit(1); }
+  if (!j || !exists(src)) { bad('작업 폴더를 찾지 못했습니다: works/<종류>/<작업>'); process.exit(1); }
   const { type, name: job } = j;
   if (j.brand !== name) warn(`이 작업은 브랜드 「${j.brand}」의 작업입니다 — 「${name}」의 템플릿으로 저장합니다`);
   const dest = path.join(dir, 'templates', type);
@@ -98,7 +97,6 @@ if (!exists(path.join(dir, 'profile.md'))) {
   write(path.join(dir, 'assets', '인증', '인증.md'), brandTemplate('인증.md'));
   write(path.join(dir, 'assets', '소재.md'), brandTemplate('소재.md').replaceAll('{{이름}}', name));
   for (const d of ['products', 'assets/프로필', 'assets/로고', 'assets/영상소스', 'assets/voice', 'assets/폰트', 'assets/bgm', 'assets/효과음', 'templates']) fs.mkdirSync(path.join(dir, d), { recursive: true });
-  ensureTypeDirs(name);
   ok(`brand/${name}/ 를 만들었습니다 — profile.md 를 채우세요`);
 } else if (!makeDefault) warn(`brand/${name}/ 는 이미 있습니다`);
 
