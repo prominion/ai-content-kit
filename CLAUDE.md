@@ -14,7 +14,7 @@
 - `brand/<브랜드>/` 브랜드 = 사업 하나. `profile.md`(소개 · 말투 · 색 · 폰트 · 음성 ID) · `products/` · `assets/`(후기 · 인증 · 프로필 · 로고 · 영상소스 · voice · 폰트 · bgm · 효과음) · `templates/<종류>/`(대표 템플릿) · `작업목록.md`(이 브랜드 작업의 진행 중 · 완성, 자동 생성). 브랜드 목록과 기본 브랜드는 `brand/목록.md`
 - `references/<종류>/<묶음>/` 남의 잘된 콘텐츠. 묶음마다 `패턴.md`. 전체 색인은 `references/목록.md`(자동 생성, 손으로 고치지 않음)
 - `works/<종류>/<작업>/` 작업장. 작업 하나 = 폴더 하나 (`작업.md` · `원본/` · `편집/` · `완성/`=결과물). 어느 브랜드 작업인지는 `작업.md` 머리말 「브랜드:」. 종류별 규격 · 기본값은 `works/<종류>/CLAUDE.md`. 연동용 전체 목록은 `works/목록.json`(자동 생성)
-- `kit/` 도구. `forms/`(빈 양식 — 새 작업 · 레퍼런스 묶음 · 브랜드를 만들 때 복사된다) · `scripts/`(명령) · `assets/`(모든 브랜드가 함께 쓰는 폰트 · BGM · 효과음)
+- `kit/` 도구. `forms/`(빈 양식 — 새 작업 · 레퍼런스 묶음 · 브랜드를 만들 때 복사된다) · `scripts/`(명령) · `assets/`(모든 브랜드가 함께 쓰는 폰트 · BGM · 효과음. 기본 글꼴 **Pretendard**만 들어 있고 나머지는 사용자가 넣는다)
 
 자료를 둘 곳은 **"다음 콘텐츠에서도 또 쓰는가"**로 정한다. 또 쓰면 `brand/<브랜드>/`, 이번 콘텐츠에만 쓰면 그 작업의 `원본/`.
 (예: 음성 학습 녹음 → `assets/voice/`, 이번 릴스 대본을 읽은 녹음 → 작업 `원본/음성/`, 자주 쓸 인서트 → `assets/영상소스/`, 이번 촬영본 → 작업 `원본/`)
@@ -38,14 +38,15 @@
 | "지금 뭐 만들고 있어?" · "완성된 거 보여줘" | `npm run works` 후 그 브랜드의 `brand/<브랜드>/작업목록.md`를 보여 준다. 전체를 물으면 `works/목록.json`을 읽어 브랜드별로 요약한다 |
 
 ## 작업 순서 (모든 종류 공통)
-1. 새 작업: `npm run new -- <종류> "<이름>" [--brand <브랜드>]` → `works/<종류>/<날짜>-<이름>/`. 어느 브랜드 일인지 요청에서 알 수 있으면 `--brand`, 모르면 기본 브랜드. 그 브랜드에 대표 템플릿이 있으면 `편집/`이 템플릿에서 시작한다 → 모양(레이아웃 · 색 · 글꼴 · 자막)은 템플릿을 따르고, 레퍼런스에서는 후킹 · 구성만 가져온다.
+1. 새 작업: `npm run new -- <종류> "<이름>" [--brand <브랜드>]` → `works/<종류>/<날짜>-<이름>/`. 어느 브랜드 일인지 요청에서 알 수 있으면 `--brand`, 모르면 기본 브랜드. **단 요청한 사업(업종 · 상품)이 기본 브랜드와 분명히 다르면 기본 브랜드에 넣지 않고 한 번 묻는다** ("새 브랜드로 만들까요, ○○ 브랜드 일인가요?"). 그 브랜드에 대표 템플릿이 있으면 `편집/`이 템플릿에서 시작한다 → 모양(레이아웃 · 색 · 글꼴 · 자막)은 템플릿을 따르고, 레퍼런스에서는 후킹 · 구성만 가져온다.
 2. `작업.md` 「2. 재료」에 브랜드 · 레퍼런스 묶음 · 원본을 경로로 적는다 (루트 기준 `brand/…` · `references/…`, 이번 작업 파일은 `원본/…`). 레퍼런스는 가져올 것 / 가져오지 않을 것까지. 안 쓰면 `- 레퍼런스: 없음`.
 3. `works/<종류>/CLAUDE.md`의 규격을 지켜 만든다. 기본값 적용 순서: 요청 > `작업.md` > `brand/<브랜드>/profile.md` > 종류 CLAUDE.md 기본값.
 4. 결과는 `완성/v1-…/` 버전 폴더로 낸다. 이전 버전은 덮어쓰지 않는다.
-5. `npm run check -- <작업 폴더>`에서 ❌가 없으면 `작업.md` 머리말 `상태: 완성`. check가 레퍼런스 목록 · 작업 목록도 갱신한다.
+5. `npm run check -- <작업 폴더>`에서 ❌가 없으면 `작업.md` 「4. 버전」 · 「5. 기록」을 채우고 머리말 `상태: 완성`. check가 레퍼런스 목록 · 작업 목록도 갱신한다. 끝나면 결정 요약을 표로 보여 준다 (무엇 · 왜 · 바꾸려면).
 6. 사용자가 올릴 버전을 정하면 `확정: <버전 폴더>`, 결과가 좋았다고 하면 `평가: 좋음`. 바꾼 뒤 `npm run works`.
 
 이어서 하는 작업은 그 폴더의 `작업.md`부터 읽는다. 결정 · 수정은 「5. 기록」에 한 줄씩 남긴다.
+종류 스킬은 「멈춤 조건」일 때만 묻고 끝까지 간다. 재료에 없는 사실(가격 · 일정 · 후기 등)은 지어내지 않고 「입력 필요」로 비워 둔 채 끝까지 만든 다음, 마지막에 한꺼번에 묻는다.
 공용 파일(`brand/` · `references/*/패턴.md`)은 한 번에 한 세션만 고친다. 목록 파일(`brand/목록.md` 외의 `목록.md` · `작업목록.md` · `목록.json`)은 스크립트만 쓴다. 작업 중에는 자기 작업 폴더만 고친다.
 
 ## 일괄 제작 (같은 종류 여러 개)
@@ -65,7 +66,12 @@ npm run brand -- <이름> --rename <새 이름>                  # 이름 바꾸
 npm run new -- <종류> "<이름>" [--brand <브랜드>] [--request "<요청 원문>"]   # 작업 폴더 + 작업.md
 npm run check -- <작업 폴더>                                # 규격 · 재료 · 레퍼런스 · 확정 검사 + 목록 갱신
 npm run works                                               # 작업 목록 다시 만들기 (진행 중 · 완성)
-npm run reference -- references/<종류>/<묶음>                # 묶음 + 패턴.md, 영상이면 정지 화면 시트 · 측정
+npm run reference -- references/<종류>/<묶음>                # 묶음 + 패턴.md, 영상 · 이미지면 한눈에 보는 시트/ · 측정.json
+npm run reference -- references/<종류>/<묶음> --download <주소 목록> [--referer <페이지>]   # 이미지 주소를 캡처/01.jpg … 로 받기
+npm run gif -- <작업 폴더> [--size 800x480]                   # 상세페이지 · 캐러셀용 GIF 프로젝트(편집/gif/) 만들기
+npm run gif -- <작업 폴더> --cut "이름:시작-끝,…"            # 렌더한 영상 → 편집/이미지/<이름>.gif
+npm run shot -- <HTML> [--width 375]                          # 휴대폰 폭으로 페이지 전체 캡처 → 편집/검사/
+npm run shot -- <HTML> --width 1080 --selector ".card" --out <폴더>   # 요소마다 PNG 한 장 (캐러셀 카드)
 npm run reference                                           # references/목록.md만 다시 만들기
 ```
 
@@ -73,3 +79,6 @@ npm run reference                                           # references/목록.
 - 하위 폴더에서 세션을 열면 루트 `.claude/settings.json`을 읽지 않는다 → 세션은 항상 이 폴더(루트)에서 연다.
 - HyperFrames 스킬은 이 키트 안(`.claude/skills/`)에 있다. `npx hyperframes skills update`는 홈 폴더(전역)에 설치하니 쓰지 않는다. 갱신 · 추가는 루트에서 `npx skills add heygen-com/hyperframes --skill <이름> -a claude-code -y`. 상태 확인은 `npx hyperframes skills check`.
 - `npx hyperframes transcribe`의 기본 모델(`small.en`)은 한국어를 영어로 번역해 버린다 → 항상 `--model small --language ko`.
+- `npx hyperframes …`처럼 버전 없이 부르면 고정 버전(`package.json`의 `config.hyperframes`)이 아니라 최신을 받아 온다 → 항상 `npx --yes hyperframes@0.8.144 …` 또는 `편집/`의 `npm run check / render`. 버전을 올릴 때는 이 숫자를 키트 전체에서 함께 바꾼다.
+- Chrome 창은 약 590px보다 좁아지지 않아 Claude in Chrome으로는 휴대폰 폭을 볼 수 없다 → `npm run shot`.
+- 와디즈 등은 자동 접속(headless · WebFetch)을 막고, 상세 내용이 전부 이미지다 → Claude in Chrome으로 열어 이미지 주소를 모으고 `npm run reference -- <묶음> --download` (절차는 `reference` 스킬 0).

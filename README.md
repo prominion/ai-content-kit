@@ -5,6 +5,7 @@
 ## 준비물
 - Claude 유료 요금제 + Claude Code (데스크톱 앱 또는 터미널)
 - Node 22 이상, FFmpeg (맥: `brew install node ffmpeg`)
+- 기본 글꼴 Pretendard는 키트에 들어 있습니다 (`kit/assets/fonts/`). 다른 폰트 · BGM · 효과음은 직접 넣습니다 (`kit/assets/` 또는 `brand/<사업>/assets/`).
 - Higgsfield · Fish Audio 계정과 크레딧 (이미지 · 음성을 쓸 때)
 
 ## 시작하기
@@ -21,7 +22,7 @@ brand/        사업별 폴더 — 소개 · 말투 · 색 · 음성 ID · 상�
 references/   남의 잘된 콘텐츠 — 종류별 · 묶음별, 묶음마다 패턴.md, 전체 색인 목록.md
 works/        내가 만든 것 — 종류별, 작업 하나 = 폴더 하나, 결과물은 완성/
               어느 브랜드 작업인지는 작업.md에 적히고, 브랜드별 목록은 brand/<브랜드>/작업목록.md
-kit/          도구 (양식 · 명령 · 폰트 · 효과음)
+kit/          도구 (양식 · 명령 · 기본 글꼴 Pretendard · 내가 넣는 폰트 · BGM · 효과음)
 ```
 
 ## 레퍼런스가 쌓이는 방식
