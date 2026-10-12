@@ -25,7 +25,7 @@ description: 상세페이지 내용을 홍보하는 세로 영상 광고소재�
 ## 3. 음성 · 편집 (`편집/` = HyperFrames 프로젝트)
 - 음성: `voice` 스킬, 조금 빠르게 → `편집/assets/음성/`.
 - 구성 표(「3. 구성」): 장면 · 시간 · 화면(소스/인증/그래픽) · 대사 · 효과음.
-- `hyperframes` → `motion-graphics` 스킬. 폰트 · BGM · 효과음은 `brand/<브랜드>/assets/`(목록 `소재.md`) → `kit/assets/`(공용) → 효과음만 없으면 `media-use` 스킬.
+- `hyperframes` → `general-video` 스킬 (`편집/BRIEF.md`가 있으니 인터뷰 없이 바로 만든다). 인서트용 짧은 그래픽 한 컷만 `motion-graphics`. 폰트 · BGM · 효과음은 `brand/<브랜드>/assets/`(목록 `소재.md`) → `kit/assets/`(공용) → 효과음만 없으면 `media-use` 스킬.
 
 ## 4. 버전 · 렌더 · 검사
 - 렌더는 한 번에 하나 → `완성/v1-레퍼런스형/v1.mp4`, `완성/v2-변형/v2.mp4`.

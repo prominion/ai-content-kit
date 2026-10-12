@@ -17,12 +17,12 @@ description: 촬영본(얼굴 영상)으로 레퍼런스 스타일의 릴스 · 
 - 브랜드: 색 · 폰트 (`brand/<브랜드>/profile.md`).
 
 ## 2. 받아쓰기 · 컷 → 「3. 구성」
-- 받아쓰기: `media-use` 스킬 (단어 단위 시간). 대본이 있으면 **대본이 정답 글자**, 받아쓰기는 시간만 쓴다.
+- 받아쓰기: `편집/`에서 `npx hyperframes transcribe ../원본/<촬영본> --model small --language ko` (단어 단위 시간. 기본 모델은 한국어를 영어로 번역하니 반드시 지정). 대본이 있으면 **대본이 정답 글자**, 받아쓰기는 시간만 쓴다.
 - 지울 곳: 무음 · 말 더듬음 · 틀린 말 · 다른 곳 보는 구간 · 쓰지 않는 대본 버전. 절차는 `hyperframes` 스킬 `references/routes/talking-head-recut.md`.
 - 구성 표: 장면 · 시간 · 화면(얼굴/그래픽) · 말 · 효과음.
 
 ## 3. 편집 (`편집/` = HyperFrames 프로젝트)
-- `hyperframes` → `motion-graphics` 스킬 순서. 모든 `npx hyperframes …`는 `편집/` 안에서.
+- `hyperframes` → `general-video` 스킬 순서 (`편집/BRIEF.md`가 있으니 인터뷰 없이 바로 만든다). 인서트용 짧은 그래픽 한 컷만 `motion-graphics`. 모든 `npx hyperframes …`는 `편집/` 안에서.
 - 레퍼런스 「가져올 것」만 따른다. 나머지 표현은 자유.
 - 폰트 · BGM · 효과음: `brand/<브랜드>/assets/`(폰트 · bgm · 효과음, 목록은 `소재.md`) → `kit/assets/`(공용) → 효과음만 없으면 `media-use` 스킬. 쓰는 파일은 `편집/assets/`로 복사.
 

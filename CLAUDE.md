@@ -33,7 +33,7 @@
 | 광고 영상 소재 | `ad-creative` |
 | 내 목소리 학습 · 내레이션 | `voice` |
 | 브랜드 만들기 · "프로필 같이 채우자" · 내 자료를 한꺼번에 주며 "정리해줘" · 이름 바꾸기 · "이 후기 저장해줘" · "브랜드에 저장해줘" · "대표 템플릿으로 해줘" | `brand` |
-| 영상 편집 엔진 | `hyperframes` → `motion-graphics` |
+| 영상 편집 엔진 | `hyperframes` → `general-video` (컷 편집 · 자막 · 그래픽 · 내레이션 있는 영상 전부). 10초 안팎 · 말 없는 인서트 그래픽 한 컷만 `motion-graphics`. `편집/BRIEF.md`가 있으니 hyperframes의 인터뷰 · 피칭은 하지 않는다 |
 | 같은 종류 여러 개 한꺼번에 ("이 스타일로 릴스 5개") | 아래 「일괄 제작」 + 에이전트 `maker` |
 | "지금 뭐 만들고 있어?" · "완성된 거 보여줘" | `npm run works` 후 그 브랜드의 `brand/<브랜드>/작업목록.md`를 보여 준다. 전체를 물으면 `works/목록.json`을 읽어 브랜드별로 요약한다 |
 
@@ -71,3 +71,5 @@ npm run reference                                           # references/목록.
 
 ## 겪은 함정 (고칠 때마다 한 줄)
 - 하위 폴더에서 세션을 열면 루트 `.claude/settings.json`을 읽지 않는다 → 세션은 항상 이 폴더(루트)에서 연다.
+- HyperFrames 스킬은 이 키트 안(`.claude/skills/`)에 있다. `npx hyperframes skills update`는 홈 폴더(전역)에 설치하니 쓰지 않는다. 갱신 · 추가는 루트에서 `npx skills add heygen-com/hyperframes --skill <이름> -a claude-code -y`. 상태 확인은 `npx hyperframes skills check`.
+- `npx hyperframes transcribe`의 기본 모델(`small.en`)은 한국어를 영어로 번역해 버린다 → 항상 `--model small --language ko`.
