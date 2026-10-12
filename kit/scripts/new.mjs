@@ -1,28 +1,35 @@
-// 새 작업 폴더 + 작업.md. 영상 종류(reels · longform · ad-creative)는 편집/에 HyperFrames 프로젝트를 만든다.
-// 사용: npm run new -- <종류> "<이름>" [--request "<요청 원문>"] [--no-hf]
+// 새 작업 폴더 + 작업.md.
+// 편집/은 ① 브랜드 대표 템플릿이 있으면 그것을 복사 ② 없고 영상 종류(reels · longform · ad-creative)면 새 HyperFrames 프로젝트 ③ 아니면 빈 폴더.
+// 사용: npm run new -- <종류> "<이름>" [--brand <브랜드>] [--request "<요청 원문>"] [--no-hf]
 import fs from 'node:fs';
 import path from 'node:path';
-import { TYPES, VIDEO_TYPES, p, exists, read, write, run, slug, today, hfVersion, ok, bad, warn } from './lib.mjs';
+import {
+  TYPES, VIDEO_TYPES, p, exists, read, write, run, slug, today, hfVersion, brandNames, defaultBrand, brandTemplate, ok, bad, warn,
+} from './lib.mjs';
 
 const args = process.argv.slice(2);
 const opt = (k) => { const i = args.indexOf(k); if (i < 0) return null; const v = args[i + 1]; args.splice(i, 2); return v; };
 const flag = (k) => { const i = args.indexOf(k); if (i < 0) return false; args.splice(i, 1); return true; };
 const request = opt('--request') || '';
+const brandArg = opt('--brand');
 const noHF = flag('--no-hf');
 const [type, ...rest] = args;
 const rawName = rest.join(' ');
 if (!TYPES.includes(type) || !rawName) {
-  bad(`사용법: npm run new -- <종류> "<이름>"   (종류: ${TYPES.join(' · ')})`);
+  bad(`사용법: npm run new -- <종류> "<이름>" [--brand <브랜드>]   (종류: ${TYPES.join(' · ')})`);
   process.exit(1);
 }
 
-// 처음이면 brand/를 양식으로 만든다
-if (!exists(p('brand', 'profile.md'))) {
-  write(p('brand', 'profile.md'), read(p('kit', 'templates', 'profile.md')));
-  for (const d of ['products', 'assets']) fs.mkdirSync(p('brand', d), { recursive: true });
-  warn('brand/profile.md 를 새로 만들었습니다 — 내용을 채워야 결과물이 내 브랜드에 맞습니다');
-} else if (read(p('brand', 'profile.md')) === read(p('kit', 'templates', 'profile.md'))) {
-  warn('brand/profile.md 가 아직 빈 양식입니다 — 채우지 않으면 말투 · 색이 브랜드와 안 맞게 나옵니다');
+// 브랜드: 지정 > 기본 > 하나뿐이면 그것
+const brands = brandNames();
+const brand = brandArg ? slug(brandArg) : defaultBrand() || (brands.length === 1 ? brands[0] : null);
+if (!brand || !brands.includes(brand)) {
+  bad(brand ? `brand/${brand}/ 가 없습니다 (있는 것: ${brands.join(', ') || '없음'}). 만들기: npm run brand -- ${brand}`
+    : `브랜드를 정하지 못했습니다. --brand <이름> 을 붙이거나 먼저 만드세요: npm run brand -- <이름>`);
+  process.exit(1);
+}
+if (read(p('brand', brand, 'profile.md')) === brandTemplate('profile.md').replaceAll('{{이름}}', brand)) {
+  warn(`brand/${brand}/profile.md 가 아직 빈 양식입니다 — 채우지 않으면 말투 · 색이 브랜드와 안 맞게 나옵니다`);
 }
 fs.mkdirSync(p('inbox'), { recursive: true });
 
@@ -32,14 +39,16 @@ let name = base;
 for (let n = 2; exists(p('works', type, name)); n++) name = `${base}-${String(n).padStart(2, '0')}`;
 const dir = p('works', type, name);
 
-write(path.join(dir, '작업.md'), read(p('kit', 'templates', '작업.md'))
-  .replaceAll('{{이름}}', name).replaceAll('{{종류}}', type).replaceAll('{{날짜}}', today())
-  .replaceAll('{{요청}}', request || '(요청 원문을 그대로 적는다)'));
-for (const d of ['원본', '완성']) fs.mkdirSync(path.join(dir, d), { recursive: true });
-
-// 편집/ — 영상 종류는 HyperFrames 프로젝트 (렌더는 이 폴더 안 파일만 읽는다 → 소재는 assets/로 복사)
+// 편집/
 const edit = path.join(dir, '편집');
-if (VIDEO_TYPES.includes(type) && !noHF) {
+const tpl = p('brand', brand, 'templates', type);
+let from = '';
+if (exists(tpl)) {
+  fs.cpSync(tpl, edit, { recursive: true, filter: (f) => path.basename(f) !== '템플릿.md' });
+  for (const d of ['renders', 'assets']) if (VIDEO_TYPES.includes(type)) fs.mkdirSync(path.join(edit, d), { recursive: true });
+  from = `brand/${brand}/templates/${type}`;
+  ok(`편집/ — 대표 템플릿에서 시작 (${from})`);
+} else if (VIDEO_TYPES.includes(type) && !noHF) {
   const res = type === 'longform' ? 'landscape' : 'portrait';
   const v = hfVersion();
   const r = run('npx', ['--yes', `hyperframes@${v}`, 'init', edit, '--non-interactive', '--example=blank', `--resolution=${res}`, '--skill=motion-graphics'],
@@ -51,5 +60,11 @@ if (VIDEO_TYPES.includes(type) && !noHF) {
   ok(`편집/ — HyperFrames ${v} 프로젝트 (${res})`);
 } else fs.mkdirSync(edit, { recursive: true });
 
-ok(`만들었습니다: works/${type}/${name}/`);
+write(path.join(dir, '작업.md'), read(p('kit', 'templates', '작업.md'))
+  .replaceAll('{{이름}}', name).replaceAll('{{종류}}', type).replaceAll('{{브랜드}}', brand).replaceAll('{{날짜}}', today())
+  .replaceAll('{{요청}}', request || '(요청 원문을 그대로 적는다)')
+  .replace('## 5. 기록\n<!--', `## 5. 기록\n${from ? `- [결정] 대표 템플릿에서 시작 — ${from}\n` : ''}<!--`));
+for (const d of ['원본', '완성']) fs.mkdirSync(path.join(dir, d), { recursive: true });
+
+ok(`만들었습니다: works/${type}/${name}/  (브랜드: ${brand})`);
 console.log(`다음: 작업.md 「2. 재료」에 레퍼런스 · 원본을 연결하세요.`);

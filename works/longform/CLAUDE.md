@@ -19,4 +19,4 @@ need_audio: true
 - 길이 5분 안팎
 - 반복 단위: 화자 발화(+번역 자막 + 모션그래픽) → 내 음성 짧은 해설 → 다음 화자 발화
 - 해설 자막에 "OO 코멘트" 같은 이름표를 붙이지 않는다.
-- 내 음성은 `voice` 스킬 (`brand/profile.md`의 음성 ID).
+- 내 음성은 `voice` 스킬 (`brand/<브랜드>/profile.md`의 음성 ID).

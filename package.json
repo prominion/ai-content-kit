@@ -8,6 +8,7 @@
     "hyperframes": "0.8.144"
   },
   "scripts": {
+    "brand": "node kit/scripts/brand.mjs",
     "new": "node kit/scripts/new.mjs",
     "check": "node kit/scripts/check.mjs",
     "reference": "node kit/scripts/reference.mjs"
