@@ -1,6 +1,8 @@
-# 내 자료 — git에 올리지 않는다 (키트를 업데이트해도 안전)
-/brand/
-/references/
+# 내 자료 — git에 올리지 않는다 (키트를 업데이트해도 안전). 빈 폴더만 배포한다
+/brand/*
+!/brand/.gitkeep
+/references/*
+!/references/.gitkeep
 
 # 작업 폴더 — 종류별 CLAUDE.md(규칙)만 키트에 포함, 작업 · 연동용 목록은 내 자료
 /works/*/*
