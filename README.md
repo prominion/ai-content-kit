@@ -69,4 +69,17 @@ kit/          도구 (양식 · 명령 · 기본 글꼴 Pretendard · 내가 넣
 "이 레퍼런스로 릴스 5개 만들어줘"처럼 요청하면 작업마다 에이전트가 하나씩 동시에 만들고, 영상 렌더는 하나씩 차례로 합니다. 아직 실제 작업으로 검증하지 않은 기능이라 하나씩 만드는 쪽을 권합니다.
 
 ## 받기 · 업데이트
-키트를 받는 방법과 새 버전으로 바꾸는 방법은 강의에서 안내합니다. `brand/` · `references/` · `works/`의 내 자료는 git에 올라가지 않으니, 새 버전으로 받아도 내 자료는 그대로입니다.
+**맥**: 터미널(응용 프로그램 → 유틸리티)을 열고 아래 한 줄을 붙여 넣습니다.
+```bash
+curl -fsSL https://raw.githubusercontent.com/prominion/ai-content-kit/main/kit/install/install.sh | bash
+```
+**윈도우** (아직 검증 전): PowerShell을 열고
+```powershell
+irm https://raw.githubusercontent.com/prominion/ai-content-kit/main/kit/install/install.ps1 | iex
+```
+없는 준비물(Node · FFmpeg · yt-dlp)은 물어보고 설치하고, 설치할 폴더를 물으면 Finder에서 폴더를 끌어다 놓거나 Enter(기본 `~/AI콘텐츠키트`)를 누릅니다. 수업 중 기다리지 않게 HyperFrames와 Chrome도 미리 받아 둡니다.
+**새 버전으로 바꾸려면 같은 한 줄을 다시 실행**합니다. `brand/` · `references/` · `works/`의 내 자료는 git에 올라가지 않으니 그대로 남습니다.
+
+## 사용 범위 · 라이선스
+이 키트는 강의 수강생의 개인 사용을 위한 것입니다. 다른 용도의 복제 · 재배포는 허락하지 않습니다.
+함께 들어 있는 남의 것: Pretendard 글꼴(SIL OFL 1.1, `kit/assets/fonts/Pretendard-LICENSE.txt`) · HyperFrames 스킬(heygen-com/hyperframes, Apache-2.0, `.claude/skills/LICENSE-HyperFrames.txt`).
