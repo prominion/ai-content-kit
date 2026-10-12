@@ -17,3 +17,6 @@ node_modules/
 # 받은함 — 정리 전 임시 (폴더는 배포, 안의 파일은 제외)
 /inbox/*
 !/inbox/.gitkeep
+
+# 강사용 자료 — 수강생 배포에 넣지 않는다
+/docs/
