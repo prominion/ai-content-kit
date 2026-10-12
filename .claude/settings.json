@@ -8,6 +8,7 @@
       "Bash(npm run brand)",
       "Bash(npm run brand *)",
       "Bash(npm run reference)",
+      "Bash(npm run works)",
       "Bash(npm run new *)",
       "Bash(npm run check *)",
       "Bash(npm run reference *)",

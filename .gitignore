@@ -2,9 +2,8 @@
 /brand/
 /references/
 
-# 작업 폴더 — 종류별 CLAUDE.md만 키트에 포함
-/works/*/*
-!/works/*/CLAUDE.md
+# 작업 폴더 — 결과물 · 작업 목록 (내 자료)
+/works/
 
 # 개인 설정
 .claude/settings.local.json

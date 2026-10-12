@@ -1,25 +1,24 @@
-// 작업 검사. ❌가 있으면 완성이 아니다. ⚠️는 확인하라는 뜻. 끝나면 references/목록.md를 다시 만든다.
-// 사용: npm run check -- <작업 폴더>   예) works/reels/2026-10-20-편집노가다
-// 규격은 works/<종류>/CLAUDE.md 머리말에서 읽는다.
+// 작업 검사. ❌가 있으면 완성이 아니다. ⚠️는 확인하라는 뜻. 끝나면 레퍼런스 목록 · 작업 목록을 다시 만든다.
+// 사용: npm run check -- <작업 폴더>   예) works/브랜드1/reels/2026-10-20-편집노가다
+// 규격은 kit/rules/<종류>.md 머리말에서 읽는다.
 import fs from 'node:fs';
 import path from 'node:path';
 import {
-  TYPES, p, exists, read, resolvePath, relParts, probe, frontmatter, walk, materialPaths, bundleOf, buildIndex, ok, warn, bad,
+  p, exists, read, resolvePath, probe, frontmatter, walk, materialPaths, bundleOf, jobOf, buildAll, ok, warn, bad,
 } from './lib.mjs';
 
 const arg = process.argv[2];
-const dir = arg && resolvePath(arg);
-const [top, type, name] = dir ? relParts(dir) : [];
-if (!dir || top !== 'works' || !TYPES.includes(type) || !name || !exists(path.join(dir, '작업.md'))) {
-  bad('작업 폴더를 찾지 못했습니다. 사용법: npm run check -- works/<종류>/<작업 이름>');
+const job = arg && jobOf(resolvePath(arg));
+if (!job) {
+  bad('작업 폴더를 찾지 못했습니다. 사용법: npm run check -- works/<브랜드>/<종류>/<작업 이름>');
   process.exit(1);
 }
-
-const spec = frontmatter(read(p('works', type, 'CLAUDE.md')));
+const { dir, type } = job;
+const spec = frontmatter(read(p('kit', 'rules', `${type}.md`)));
 const rel = (f) => path.relative(dir, f);
 let fails = 0;
 const fail = (s) => { bad(s); fails++; };
-console.log(`검사: ${type}/${name}`);
+console.log(`검사: ${job.id}`);
 
 // 1. 작업.md 절 6개
 const memo = read(path.join(dir, '작업.md'));
@@ -27,13 +26,10 @@ const sections = ['1. 요청', '2. 재료', '3. 구성', '4. 버전', '5. 기록
 const missing = sections.filter((s) => !memo.includes(`## ${s}`));
 missing.length ? fail(`작업.md에 없는 절: ${missing.join(', ')}`) : ok('작업.md 절 6개');
 
-// 2. 재료 경로가 실제로 있나
+// 2. 재료 경로가 실제로 있나 (루트 기준, 없으면 작업 폴더 기준)
 const { sec, paths } = materialPaths(dir);
 const sources = [];
-for (const s of paths) {
-  const f = path.resolve(dir, s);
-  exists(f) ? sources.push(f) : fail(`재료 경로가 없습니다: ${s}`);
-}
+for (const { s, f } of paths) f ? sources.push(f) : fail(`재료 경로가 없습니다: ${s}`);
 if (paths.length && sources.length === paths.length) ok(`재료 경로 ${paths.length}개`);
 
 // 3. 레퍼런스 연결 — 없으면 ❌. 일부러 안 쓰면 「- 레퍼런스: 없음」
@@ -101,8 +97,13 @@ if (outTexts.length) {
   else if (found.length) ok(`결과물 숫자 ${found.length}개 모두 재료에 있음`);
 }
 
-// 6. 레퍼런스 목록 갱신 (쓴 작업 · 좋음은 작업.md에서 센다)
-buildIndex();
+// 6. 확정 버전이 실제로 있나
+const fm = frontmatter(memo);
+if (fm.확정 && !exists(path.join(dir, '완성', fm.확정))) fail(`확정: ${fm.확정} — 완성/${fm.확정}/ 폴더가 없습니다`);
+if (fm.상태 === '완성' && !files.length) fail('상태가 「완성」인데 완성/이 비어 있습니다');
+
+// 7. 목록 갱신 (레퍼런스 목록 · 작업 목록)
+buildAll();
 
 console.log(fails ? `\n❌ ${fails}개` : '\n통과');
 process.exit(fails ? 1 : 0);

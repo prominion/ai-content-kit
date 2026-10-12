@@ -4,7 +4,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {
-  TYPES, VIDEO_TYPES, p, exists, read, write, run, slug, today, hfVersion, brandNames, defaultBrand, brandTemplate, ok, bad, warn,
+  TYPES, VIDEO_TYPES, p, exists, read, write, run, slug, today, hfVersion, brandNames, defaultBrand, brandTemplate, buildWorkLists, ok, bad, warn,
 } from './lib.mjs';
 
 const args = process.argv.slice(2);
@@ -36,8 +36,8 @@ fs.mkdirSync(p('inbox'), { recursive: true });
 // 폴더 이름: <날짜>-<이름>, 겹치면 -02, -03 …
 const base = `${today()}-${slug(rawName)}`;
 let name = base;
-for (let n = 2; exists(p('works', type, name)); n++) name = `${base}-${String(n).padStart(2, '0')}`;
-const dir = p('works', type, name);
+for (let n = 2; exists(p('works', brand, type, name)); n++) name = `${base}-${String(n).padStart(2, '0')}`;
+const dir = p('works', brand, type, name);
 
 // 편집/
 const edit = path.join(dir, '편집');
@@ -55,7 +55,7 @@ if (exists(tpl)) {
     { cwd: p(), env: { ...process.env, HYPERFRAMES_SKIP_SKILLS: '1' } });
   if (!r.ok) { bad(`HyperFrames 프로젝트를 만들지 못했습니다:\n${(r.err || r.out).slice(0, 500)}`); process.exit(1); }
   fs.rmSync(path.join(edit, 'AGENTS.md'), { force: true });
-  write(path.join(edit, 'CLAUDE.md'), `# 편집 (HyperFrames 프로젝트)\n\n규칙은 루트 \`CLAUDE.md\`와 \`works/${type}/CLAUDE.md\`를 따른다. \`npx hyperframes …\`와 \`npm run dev / check / render\`는 이 폴더 안에서 실행한다.\n폰트 · 효과음 · 음성은 이 폴더의 \`assets/\`로 복사해서 쓴다 (상위 경로 참조 금지).\n`);
+  write(path.join(edit, 'CLAUDE.md'), `# 편집 (HyperFrames 프로젝트)\n\n규칙은 루트 \`CLAUDE.md\`와 \`kit/rules/${type}.md\`를 따른다. \`npx hyperframes …\`와 \`npm run dev / check / render\`는 이 폴더 안에서 실행한다.\n폰트 · 효과음 · 음성은 이 폴더의 \`assets/\`로 복사해서 쓴다 (상위 경로 참조 금지).\n`);
   for (const d of ['assets', 'compositions', 'renders']) fs.mkdirSync(path.join(edit, d), { recursive: true });
   ok(`편집/ — HyperFrames ${v} 프로젝트 (${res})`);
 } else fs.mkdirSync(edit, { recursive: true });
@@ -66,5 +66,6 @@ write(path.join(dir, '작업.md'), read(p('kit', 'forms', '작업.md'))
   .replace('## 5. 기록\n<!--', `## 5. 기록\n${from ? `- [결정] 대표 템플릿에서 시작 — ${from}\n` : ''}<!--`));
 for (const d of ['원본', '완성']) fs.mkdirSync(path.join(dir, d), { recursive: true });
 
-ok(`만들었습니다: works/${type}/${name}/  (브랜드: ${brand})`);
+buildWorkLists();
+ok(`만들었습니다: works/${brand}/${type}/${name}/`);
 console.log(`다음: 작업.md 「2. 재료」에 레퍼런스 · 원본을 연결하세요.`);
