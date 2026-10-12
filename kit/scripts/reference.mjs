@@ -7,7 +7,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { TYPES, p, read, write, exists, resolvePath, relParts, probe, run, slug, today, buildIndex, ok, bad, warn } from './lib.mjs';
+import { TYPES, typeOf, refDir, p, read, write, exists, resolvePath, relParts, probe, run, slug, today, buildIndex, ok, bad, warn } from './lib.mjs';
 
 const argv = process.argv.slice(2);
 const opt = (k) => { const i = argv.indexOf(k); if (i < 0) return null; const v = argv[i + 1]; argv.splice(i, 2); return v; };
@@ -16,19 +16,20 @@ const referer = opt('--referer');
 const arg = argv[0];
 if (!arg) { ok(`references/목록.md — 묶음 ${buildIndex()}개`); process.exit(0); }
 const dir0 = arg && resolvePath(arg);
-const [top, type, bundle] = dir0 ? relParts(dir0) : [];
-if (!dir0 || top !== 'references' || !TYPES.includes(type) || !bundle) {
-  bad(`사용법: npm run reference -- references/<종류>/<묶음>   (종류: ${TYPES.join(' · ')}) · 목록만 다시 만들기: npm run reference`);
+const [top, folder, bundle] = dir0 ? relParts(dir0) : [];
+const type = top === 'references' ? typeOf(folder) : null; // 폴더 이름(릴스)이든 코드(reels)든 받는다
+if (!dir0 || !type || !bundle) {
+  bad(`사용법: npm run reference -- references/<종류>/<묶음>   (종류: ${TYPES.map((t) => `${refDir(t)}(${t})`).join(' · ')}) · 목록만 다시 만들기: npm run reference`);
   process.exit(1);
 }
 const name = slug(bundle);
-const dir = p('references', type, name);
+const dir = p('references', refDir(type), name);
 fs.mkdirSync(dir, { recursive: true });
 
 const pf = path.join(dir, '패턴.md');
 if (!exists(pf)) {
-  write(pf, read(p('kit', 'forms', '패턴.md')).replaceAll('{{이름}}', name).replaceAll('{{종류}}', type).replaceAll('{{날짜}}', today()));
-  ok(`references/${type}/${name}/패턴.md 를 만들었습니다`);
+  write(pf, read(p('kit', 'forms', '패턴.md')).replaceAll('{{이름}}', name).replaceAll('{{종류}}', refDir(type)).replaceAll('{{날짜}}', today()));
+  ok(`references/${refDir(type)}/${name}/패턴.md 를 만들었습니다`);
 }
 
 buildIndex();
@@ -131,5 +132,5 @@ for (const v of vids) {
 }
 
 write(path.join(dir, '측정.json'), JSON.stringify(측정, null, 2) + '\n');
-ok(`측정.json · 시트/ → references/${type}/${name}/`);
+ok(`측정.json · 시트/ → references/${refDir(type)}/${name}/`);
 console.log('다음: 시트를 Read로 직접 보고 패턴.md 「핵심 패턴」 2~3개를 채우세요.');

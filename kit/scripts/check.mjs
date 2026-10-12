@@ -1,20 +1,20 @@
 // 작업 검사. ❌가 있으면 완성이 아니다. ⚠️는 확인하라는 뜻. 끝나면 레퍼런스 목록 · 작업 목록을 다시 만든다.
-// 사용: npm run check -- <작업 폴더>   예) works/reels/2026-10-20-편집노가다
-// 규격은 works/<종류>/CLAUDE.md 머리말에서 읽는다.
+// 사용: npm run check -- <작업 폴더>   예) works/릴스-제작/2026-10-20-편집노가다
+// 규격은 works/<종류>-제작/CLAUDE.md 머리말에서 읽는다.
 import fs from 'node:fs';
 import path from 'node:path';
 import {
-  p, exists, read, resolvePath, probe, frontmatter, walk, materialPaths, bundleOf, jobOf, buildAll, ok, warn, bad,
+  p, exists, read, resolvePath, typeDir, probe, frontmatter, walk, materialPaths, bundleOf, jobOf, buildAll, ok, warn, bad,
 } from './lib.mjs';
 
 const arg = process.argv[2];
 const job = arg && jobOf(resolvePath(arg));
 if (!job) {
-  bad('작업 폴더를 찾지 못했습니다. 사용법: npm run check -- works/<종류>/<작업 이름>');
+  bad('작업 폴더를 찾지 못했습니다. 사용법: npm run check -- works/<종류>-제작/<작업 이름>');
   process.exit(1);
 }
 const { dir, type } = job;
-const spec = frontmatter(read(p('works', type, 'CLAUDE.md')));
+const spec = frontmatter(read(p('works', typeDir(type), 'CLAUDE.md')));
 const rel = (f) => path.relative(dir, f);
 let fails = 0;
 const fail = (s) => { bad(s); fails++; };
@@ -34,7 +34,7 @@ for (const { s, f } of paths) f ? sources.push(f) : fail(`재료 경로가 없�
 if (paths.length && sources.length === paths.length) ok(`재료 경로 ${paths.length}개`);
 
 // 3. 레퍼런스 연결 — 없으면 ❌. 일부러 안 쓰면 「- 레퍼런스: 없음」
-const refs = [...new Set(sources.map(bundleOf).filter(Boolean).map((b) => `${b.type}/${b.bundle}`))];
+const refs = [...new Set(sources.map(bundleOf).filter(Boolean).map((b) => b.id))];
 const refLine = (sec.match(/^- 레퍼런스:(.*)$/m) || [])[1] || '';
 if (refs.length) ok(`레퍼런스 ${refs.length}개 연결: ${refs.join(', ')}`);
 else if (/없음/.test(refLine)) ok('레퍼런스 없이 (작업.md에 「없음」으로 적음)');

@@ -20,12 +20,28 @@ export const nfc = (s) => s.normalize('NFC');
 // 폴더 이름: 공백은 하이픈, 경로에 못 쓰는 글자 제거
 export const slug = (s) => nfc(s).trim().replace(/\s+/g, '-').replace(/[\\/:*?"<>|]/g, '').replace(/-+/g, '-');
 
+// 종류 폴더 이름 — 수강생이 보는 한글. 내부 코드(TYPES)는 스킬 이름과 같게 영어로 둔다.
+// works/ 아래는 강의 목차와 같게 「-제작」을 붙이고, references/ · brand/<브랜드>/templates/ 아래는 종류 이름만 쓴다
+export const TYPE_DIRS = {
+  'detail-page': { works: '상세페이지-제작', refs: '상세페이지' },
+  reels: { works: '릴스-제작', refs: '릴스' },
+  longform: { works: '유튜브롱폼-제작', refs: '유튜브롱폼' },
+  carousel: { works: '캐러셀-제작', refs: '캐러셀' },
+  'ad-creative': { works: '영상광고소재-제작', refs: '영상광고소재' },
+};
+export const typeDir = (t) => TYPE_DIRS[t].works; // works/<이것>/
+export const refDir = (t) => TYPE_DIRS[t].refs; // references/<이것>/ · templates/<이것>/
+// 종류 코드(reels) · works 폴더 이름(릴스-제작) · references 폴더 이름(릴스) 중 무엇이든 → 종류 코드 (모르면 null)
+export const typeOf = (s) => { const n = nfc(String(s || '')).trim(); return TYPES.find((t) => t === n || typeDir(t) === n || refDir(t) === n) || null; };
+const typeOfWorksDir = (s) => TYPES.find((t) => typeDir(t) === nfc(String(s || ''))) || null;
+const typeOfRefDir = (s) => TYPES.find((t) => refDir(t) === nfc(String(s || ''))) || null;
+
 // npm run 으로 실행하면 INIT_CWD가 사용자가 있던 폴더다. 거기 → 루트 순서로 경로를 찾는다
 export function resolvePath(arg) {
   const bases = [process.env.INIT_CWD, process.cwd(), ROOT].filter(Boolean);
   return bases.map((b) => path.resolve(b, arg)).find(exists) || path.resolve(ROOT, arg);
 }
-// 루트 기준 경로 조각: works/reels/2026-10-20-x → ['works', 'reels', '2026-10-20-x']
+// 루트 기준 경로 조각: works/릴스-제작/2026-10-20-x → ['works', '릴스-제작', '2026-10-20-x']
 export const relParts = (f) => nfc(path.relative(ROOT, f)).split(path.sep);
 
 // 외부 명령 실행
@@ -124,18 +140,20 @@ export const brandNames = () => (exists(p('brand'))
 export const defaultBrand = () => (exists(p('brand', '목록.md')) ? (read(p('brand', '목록.md')).match(/^기본:\s*(.+)$/m) || [])[1]?.trim() : null) || null;
 export const brandTemplate = (f) => read(p('kit', 'forms', 'brand', f));
 
-// 작업 폴더: works/<종류>/<작업>/ (작업.md가 있는 곳). 어느 브랜드 작업인지는 작업.md 머리말 「브랜드:」
+// 작업 폴더: works/<종류>-제작/<작업>/ (작업.md가 있는 곳). 어느 브랜드 작업인지는 작업.md 머리말 「브랜드:」
+// type은 코드(reels), id는 works/ 아래 실제 경로(릴스-제작/<작업>)
 export function jobOf(f) {
-  const [top, type, name] = relParts(f);
-  const dir = top === 'works' && TYPES.includes(type) && name ? p('works', type, name) : null;
+  const [top, folder, name] = relParts(f);
+  const type = top === 'works' ? typeOfWorksDir(folder) : null;
+  const dir = type && name ? p('works', typeDir(type), name) : null;
   if (!dir || !exists(path.join(dir, '작업.md'))) return null;
   const brand = String(frontmatter(read(path.join(dir, '작업.md'))).브랜드 || '');
-  return { brand, type, name, dir, id: `${type}/${name}` };
+  return { brand, type, name, dir, id: `${typeDir(type)}/${name}` };
 }
 export function allJobs() {
   const out = [];
   for (const t of TYPES) {
-    const d = p('works', t);
+    const d = p('works', typeDir(t));
     if (!exists(d)) continue;
     for (const x of fs.readdirSync(d, { withFileTypes: true })) {
       if (!x.isDirectory() || x.name.startsWith('.')) continue;
@@ -156,12 +174,13 @@ export function materialPaths(jobDir) {
   return { sec, raw, paths: raw.map((s) => ({ s, f: resolve(s) })) };
 }
 
-// 경로 → 레퍼런스 묶음 { type, bundle } (references/<종류>/<묶음>/… 이 아니면 null)
+// 경로 → 레퍼런스 묶음 { type, bundle, id } (references/<종류>/<묶음>/… 이 아니면 null). id는 references/ 아래 실제 경로(릴스/<묶음>)
 export function bundleOf(f) {
-  const [top, type, bundle] = relParts(f);
-  return top === 'references' && TYPES.includes(type) && bundle ? { type, bundle } : null;
+  const [top, folder, bundle] = relParts(f);
+  const type = top === 'references' ? typeOfRefDir(folder) : null;
+  return type && bundle ? { type, bundle, id: `${refDir(type)}/${bundle}` } : null;
 }
-const refsOf = (j) => [...new Set(materialPaths(j.dir).paths.map((x) => x.f && bundleOf(x.f)).filter(Boolean).map((b) => `${b.type}/${b.bundle}`))];
+const refsOf = (j) => [...new Set(materialPaths(j.dir).paths.map((x) => x.f && bundleOf(x.f)).filter(Boolean).map((b) => b.id))];
 
 // 임시 파일에 쓰고 바꿔치기 — 여러 세션이 동시에 만들어도 반쯤 쓴 파일이 보이지 않는다
 function writeAtomic(f, s) { const tmp = `${f}.${process.pid}.tmp`; write(tmp, s); fs.renameSync(tmp, f); }
@@ -169,7 +188,7 @@ const cell = (s) => String(s ?? '').replace(/\|/g, '/').replace(/\n/g, ' ');
 
 // references/목록.md — 내용은 references/ · works/에서 매번 새로 계산한다 (동시에 돌려도 결과가 같다)
 export function buildIndex(jobs = allJobs()) {
-  const usage = {}; // 'reels/묶음' → { used: [작업], good: n }
+  const usage = {}; // '릴스/묶음' → { used: [작업], good: n }
   for (const j of jobs) {
     const good = frontmatter(read(path.join(j.dir, '작업.md'))).평가 === '좋음';
     for (const r of refsOf(j)) {
@@ -181,18 +200,18 @@ export function buildIndex(jobs = allJobs()) {
   const lines = ['# 레퍼런스 목록', '', '<!-- 자동 생성 (npm run reference · npm run check). 손으로 고치지 않는다. 쓴 작업 · 좋음은 works/*/*/작업.md에서 센다 -->', ''];
   let total = 0;
   for (const t of TYPES) {
-    const rdir = p('references', t);
+    const rdir = p('references', refDir(t));
     const bundles = exists(rdir) ? fs.readdirSync(rdir, { withFileTypes: true }).filter((d) => d.isDirectory() && !d.name.startsWith('.')).map((d) => nfc(d.name)) : [];
     if (!bundles.length) continue;
     const rows = bundles.map((b) => {
       const pf = path.join(rdir, b, '패턴.md');
-      return { b, fm: exists(pf) ? frontmatter(read(pf)) : {}, u: usage[`${t}/${b}`] || { used: [], good: 0 } };
+      return { b, fm: exists(pf) ? frontmatter(read(pf)) : {}, u: usage[`${refDir(t)}/${b}`] || { used: [], good: 0 } };
     }).sort((x, y) => y.u.good - x.u.good || y.u.used.length - x.u.used.length || x.b.localeCompare(y.b));
-    lines.push(`## ${t}`, '', '| 묶음 | 한줄 | 태그 | 쓴 작업 | 좋음 | 최근 작업 |', '|---|---|---|---|---|---|');
+    lines.push(`## ${refDir(t)}`, '', '| 묶음 | 한줄 | 태그 | 쓴 작업 | 좋음 | 최근 작업 |', '|---|---|---|---|---|---|');
     // 최근 작업 = 작업 폴더 이름 앞 날짜(YYYY-MM-DD)가 가장 늦은 것
     for (const r of rows) r.u.used.sort((x, y) => x.split('/').at(-1).localeCompare(y.split('/').at(-1)));
     for (const { b, fm, u } of rows) {
-      lines.push(`| [${b}](<${t}/${b}/패턴.md>) | ${cell(fm.한줄 || '(패턴 미작성)')} | ${[].concat(fm.태그 || []).join(' · ')} | ${u.used.length} | ${u.good} | ${u.used.at(-1) || ''} |`);
+      lines.push(`| [${b}](<${refDir(t)}/${b}/패턴.md>) | ${cell(fm.한줄 || '(패턴 미작성)')} | ${[].concat(fm.태그 || []).join(' · ')} | ${u.used.length} | ${u.good} | ${u.used.at(-1) || ''} |`);
     }
     lines.push('');
     total += rows.length;
@@ -234,14 +253,14 @@ export function buildWorkLists(jobs = allJobs()) {
       `진행 중 ${doing.length} · 완성 ${done.length}`, '', `## 🔨 진행 중 (${doing.length})`, ''];
     if (doing.length) {
       out.push('| 종류 | 작업 | 상태 | 시작 | 최근 기록 |', '|---|---|---|---|---|');
-      for (const x of doing) out.push(`| ${x.종류} | [${x.작업}](${link(`${x.경로}/작업.md`)}) | ${x.상태} | ${x.만든날} | ${cell(x.최근기록)} |`);
+      for (const x of doing) out.push(`| ${refDir(x.종류)} | [${x.작업}](${link(`${x.경로}/작업.md`)}) | ${x.상태} | ${x.만든날} | ${cell(x.최근기록)} |`);
     } else out.push('(없음)');
     out.push('', `## ✅ 완성 (${done.length})`, '');
     if (done.length) {
       out.push('| 종류 | 작업 | 확정본 | 버전 | 평가 | 레퍼런스 | 만든 날 |', '|---|---|---|---|---|---|---|');
       for (const x of done) {
         const final = x.확정 ? `[${x.확정}](${link(x.확정경로)})` : x.버전.length ? `(미확정) [${x.버전.at(-1)}](${link(`${x.경로}/완성/${x.버전.at(-1)}`)})` : '—';
-        out.push(`| ${x.종류} | [${x.작업}](${link(`${x.경로}/작업.md`)}) | ${final} | ${x.버전.length} | ${x.평가} | ${x.레퍼런스.join(', ')} | ${x.만든날} |`);
+        out.push(`| ${refDir(x.종류)} | [${x.작업}](${link(`${x.경로}/작업.md`)}) | ${final} | ${x.버전.length} | ${x.평가} | ${x.레퍼런스.join(', ')} | ${x.만든날} |`);
       }
     } else out.push('(없음)');
     return `${out.join('\n')}\n`;

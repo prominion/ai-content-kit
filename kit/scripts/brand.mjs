@@ -8,7 +8,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {
-  TYPES, p, exists, read, write, nfc, slug, today, resolvePath, jobOf, allJobs, brandNames, defaultBrand, brandTemplate, buildAll, ok, bad, warn,
+  typeOf, refDir, p, exists, read, write, nfc, slug, today, resolvePath, jobOf, allJobs, brandNames, defaultBrand, brandTemplate, buildAll, ok, bad, warn,
 } from './lib.mjs';
 
 const args = process.argv.slice(2);
@@ -27,7 +27,7 @@ if (!name) {
   if (!names.length) { console.log('브랜드가 없습니다. 만들기: npm run brand -- <이름>'); process.exit(0); }
   const def = defaultBrand();
   for (const n of names) {
-    const tpls = exists(p('brand', n, 'templates')) ? fs.readdirSync(p('brand', n, 'templates')).filter((t) => TYPES.includes(t)) : [];
+    const tpls = exists(p('brand', n, 'templates')) ? fs.readdirSync(p('brand', n, 'templates')).filter((t) => typeOf(t)).map(nfc) : [];
     console.log(`${n === def ? '★' : '·'} ${n}   대표 템플릿: ${tpls.join(', ') || '없음'}`);
   }
   process.exit(0);
@@ -71,13 +71,13 @@ if (tplJob) {
   if (!exists(path.join(dir, 'profile.md'))) { bad(`brand/${name}/ 가 없습니다`); process.exit(1); }
   const j = jobOf(resolvePath(tplJob));
   const src = j && path.join(j.dir, '편집');
-  if (!j || !exists(src)) { bad('작업 폴더를 찾지 못했습니다: works/<종류>/<작업>'); process.exit(1); }
+  if (!j || !exists(src)) { bad('작업 폴더를 찾지 못했습니다: works/<종류>-제작/<작업>'); process.exit(1); }
   const { type, name: job } = j;
   if (j.brand !== name) warn(`이 작업은 브랜드 「${j.brand}」의 작업입니다 — 「${name}」의 템플릿으로 저장합니다`);
-  const dest = path.join(dir, 'templates', type);
+  const dest = path.join(dir, 'templates', refDir(type));
   if (exists(dest)) {
-    if (!replace) { bad(`brand/${name}/templates/${type}/ 가 이미 있습니다. 바꾸려면 --replace (이전 것은 templates/_이전/ 으로 옮겨 둡니다)`); process.exit(1); }
-    const bak = path.join(dir, 'templates', '_이전', `${type}-${today()}-${Date.now()}`);
+    if (!replace) { bad(`brand/${name}/templates/${refDir(type)}/ 가 이미 있습니다. 바꾸려면 --replace (이전 것은 templates/_이전/ 으로 옮겨 둡니다)`); process.exit(1); }
+    const bak = path.join(dir, 'templates', '_이전', `${refDir(type)}-${today()}-${Date.now()}`);
     fs.mkdirSync(path.dirname(bak), { recursive: true });
     fs.renameSync(dest, bak);
     ok(`이전 템플릿 → ${path.relative(p(), bak)}`);
@@ -85,8 +85,8 @@ if (tplJob) {
   // 이 작업에만 쓰인 것(렌더 결과 · 음성 · 생성 이미지 · 검사 결과 · 미리보기 캐시)은 빼고 복사
   const skip = new Set(['renders', 'node_modules', '음성', '이미지', '검사', '.thumbnails', '.hyperframes', 'transcript.json']);
   fs.cpSync(src, dest, { recursive: true, filter: (f) => !skip.has(path.basename(f)) });
-  write(path.join(dest, '템플릿.md'), `# ${name} — ${type} 대표 템플릿\n\n- 출처 작업: works/${j.id}\n- 저장일: ${today()}\n- 새 ${type} 작업은 \`npm run new\`가 이 폴더를 편집/으로 복사해서 시작한다. 글 · 영상 소스만 바꾸고 레이아웃 · 색 · 글꼴 · 자막 스타일은 유지한다.\n`);
-  ok(`대표 템플릿 저장: brand/${name}/templates/${type}/ (출처 ${j.id})`);
+  write(path.join(dest, '템플릿.md'), `# ${name} — ${refDir(type)} 대표 템플릿\n\n- 출처 작업: works/${j.id}\n- 저장일: ${today()}\n- 새 ${refDir(type)} 작업은 \`npm run new\`가 이 폴더를 편집/으로 복사해서 시작한다. 글 · 영상 소스만 바꾸고 레이아웃 · 색 · 글꼴 · 자막 스타일은 유지한다.\n`);
+  ok(`대표 템플릿 저장: brand/${name}/templates/${refDir(type)}/ (출처 ${j.id})`);
   process.exit(0);
 }
 
