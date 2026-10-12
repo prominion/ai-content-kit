@@ -8,6 +8,7 @@
 2. 레퍼런스에서는 구조 · 리듬 · 패턴만 가져온다. 남의 문장 · 이미지 · 로고 · 인물을 그대로 쓰지 않는다.
 3. 사용자가 준 원본 파일은 고치거나 지우지 않는다. 작업 폴더 `원본/`으로 복사해서 쓴다.
 4. **만들기 요청에 첨부 · 링크(레퍼런스)가 있으면 만들기 전에 `reference` 스킬로 저장부터 한다.**
+5. 지킬 것은 이렇게 사실 · 규격 · 안전에 관한 것만이다. **모양 · 표현은 레퍼런스의 「가져올 것」과 요청을 따르고, 그 밖은 자유롭게 시도한다.** 적혀 있지 않은 것은 금지가 아니다.
 
 ## 폴더 지도
 - `inbox/` 받은함. 다운로드한 것 · 채팅에 경로 없이 붙인 파일을 일단 넣는 곳. 정리하면 비운다
@@ -83,9 +84,17 @@ npm run shot -- <HTML> --width 1080 --selector ".card" --out <폴더>   # 요소
 npm run reference                                           # references/목록.md만 다시 만들기
 ```
 
+## 규칙 · 스킬을 고칠 때 (커지지 않게)
+어디에 무엇을 쓰나 — 루트 `CLAUDE.md`: 모든 종류 공통 약속 · `works/<종류>-제작/CLAUDE.md`: 그 종류의 완성 기준(check가 읽는 머리말 + 지킬 것 몇 줄) · 스킬: 만드는 절차와 이 키트에서 틀렸던 것. **같은 말을 두 곳에 쓰지 않는다.**
+1. 한 줄 추가는 실제로 틀린 뒤에만. 모델이 스스로 바르게 하는 것은 적지 않는다.
+2. 스킬 본문은 한 화면(2,500자 안팎). 넘으면 긴 설명은 그 스킬 폴더 안 별도 파일로 내리고 본문은 가리키기만 한다.
+3. 어떤 줄 없이도 두 번 연속 바르게 만들면 그 줄을 지운다. 모델이 좋아지면 스킬은 줄어드는 게 정상이다.
+4. 스킬 설명(`description`)은 켜지 않아도 매 세션 올라간다 — 한두 문장으로.
+5. HyperFrames 버전 숫자는 `package.json`의 `config.hyperframes` 한 곳에만. 규칙 · 스킬에는 `편집/`의 `npm run check / render`와 `편집/CLAUDE.md`(버전이 적혀 생성됨)를 가리킨다.
+
 ## 겪은 함정 (고칠 때마다 한 줄)
 - 하위 폴더에서 세션을 열면 루트 `.claude/settings.json`을 읽지 않는다 → 세션은 항상 이 폴더(루트)에서 연다.
-- HyperFrames: 버전 없이 `npx hyperframes …`라고 부르면 고정 버전(`package.json`의 `config.hyperframes`)이 아니라 최신을 받아 온다 → 항상 `npx --yes hyperframes@0.8.144 …` 또는 `편집/`의 `npm run check / render` (버전을 올릴 때는 이 숫자를 키트 전체에서 함께 바꾼다). `npx hyperframes skills update`는 홈 폴더(전역)에 설치하니 쓰지 않는다 — 스킬은 키트 `.claude/skills/`에 있고, 갱신은 루트에서 `npx skills add heygen-com/hyperframes --skill <이름> -a claude-code -y`.
+- HyperFrames: 버전 없이 `npx hyperframes …`라고 부르면 고정 버전(`package.json`의 `config.hyperframes`)이 아니라 최신을 받아 온다 → 항상 `편집/`의 `npm run check / render`, 직접 부를 때는 `npx --yes hyperframes@<package.json의 버전> …` (`편집/CLAUDE.md`에 버전이 적혀 있다). `npx hyperframes skills update`는 홈 폴더(전역)에 설치하니 쓰지 않는다 — 스킬은 키트 `.claude/skills/`에 있고, 갱신은 루트에서 `npx skills add heygen-com/hyperframes --skill <이름> -a claude-code -y`.
 - 전사는 `npm run transcribe`로만 (`npx hyperframes transcribe`를 직접 부르면 기본 모델이 한국어를 영어로 번역한다). 처음 한 번은 whisper.cpp 설치와 모델(약 490MB) 다운로드로 몇 분 걸린다고 미리 알린다.
 - Chrome 창은 약 590px보다 좁아지지 않아 Claude in Chrome으로는 휴대폰 폭을 볼 수 없다 → `npm run shot`.
 - 와디즈 등은 자동 접속(headless · WebFetch)을 막고, 상세 내용이 전부 이미지다 → Claude in Chrome으로 열어 이미지 주소를 모으고 `npm run reference -- <묶음> --download` (절차는 `reference` 스킬 0).

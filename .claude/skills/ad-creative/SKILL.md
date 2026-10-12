@@ -23,7 +23,7 @@ description: 상세페이지 내용을 홍보하는 세로 영상 광고소재�
 - `편집/CLAUDE.md`의 규칙대로 **`hyperframes-core`** 계약에 맞춰 `index.html`을 쓴다. 폰트 · BGM · 효과음은 `brand/<브랜드>/assets/`(목록 `소재.md`) → `kit/assets/`(공용) → 효과음이 없으면 `.claude/skills/media-use/audio/assets/sfx/`(Pixabay, 출처 표기 불필요). 쓰는 파일은 `편집/assets/`로 복사.
 
 ## 4. 버전 · 렌더 · 검사
-- 렌더 전에 `npx --yes hyperframes@0.8.144 snapshot --at <초,초,…>`로 주요 장면을 보고 고친다. 렌더는 한 번에 하나, 직전에 "렌더할까요?" 한 번 → `완성/v1-레퍼런스형/v1.mp4`.
+- 렌더 전에 `편집/CLAUDE.md`의 snapshot 명령으로 주요 장면을 보고 고친다. 렌더는 한 번에 하나, 직전에 "렌더할까요?" 한 번 → `완성/v1-레퍼런스형/v1.mp4`.
 - 결과 영상에서 정지 화면을 뽑아 **직접 보고** 확인한다. `npm run check -- works/영상광고소재-제작/<작업>` ❌가 없을 때까지. 숫자 경고(⚠️)는 하나씩 출처를 확인한다.
 
 ## 멈춤 조건 (이때만 묻는다)

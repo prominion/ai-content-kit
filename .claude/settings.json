@@ -14,8 +14,8 @@
       "Bash(npm run reference *)",
       "Bash(npm run dev *)",
       "Bash(npm run render *)",
-      "Bash(npx --yes hyperframes@0.8.144 *)",
-      "Bash(npx hyperframes@0.8.144 *)",
+      "Bash(npx --yes hyperframes@* *)",
+      "Bash(npx hyperframes@* *)",
       "Bash(ffmpeg *)",
       "Bash(ffprobe *)",
       "Bash(npm run gif *)",
@@ -23,7 +23,7 @@
       "Bash(npm run check)",
       "Bash(npm run render)",
       "Bash(cd * && npm run *)",
-      "Bash(cd * && npx --yes hyperframes@0.8.144 *)",
+      "Bash(cd * && npx --yes hyperframes@* *)",
       "Bash(npm run transcribe *)",
       "Bash(yt-dlp *)"
     ]
