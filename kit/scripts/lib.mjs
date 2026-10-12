@@ -81,7 +81,7 @@ export const brandNames = () => (exists(p('brand'))
   ? fs.readdirSync(p('brand'), { withFileTypes: true }).filter((d) => d.isDirectory() && exists(p('brand', d.name, 'profile.md'))).map((d) => nfc(d.name)).sort()
   : []);
 export const defaultBrand = () => (exists(p('brand', '목록.md')) ? (read(p('brand', '목록.md')).match(/^기본:\s*(.+)$/m) || [])[1]?.trim() : null) || null;
-export const brandTemplate = (f) => read(p('kit', 'templates', 'brand', f));
+export const brandTemplate = (f) => read(p('kit', 'forms', 'brand', f));
 
 // 작업.md 「2. 재료」의 `경로` 목록 (작업 폴더 기준 절대 경로)
 export function materialPaths(jobDir) {

@@ -19,7 +19,7 @@ fs.mkdirSync(dir, { recursive: true });
 
 const pf = path.join(dir, '패턴.md');
 if (!exists(pf)) {
-  write(pf, read(p('kit', 'templates', '패턴.md')).replaceAll('{{이름}}', name).replaceAll('{{종류}}', type).replaceAll('{{날짜}}', today()));
+  write(pf, read(p('kit', 'forms', '패턴.md')).replaceAll('{{이름}}', name).replaceAll('{{종류}}', type).replaceAll('{{날짜}}', today()));
   ok(`references/${type}/${name}/패턴.md 를 만들었습니다`);
 }
 

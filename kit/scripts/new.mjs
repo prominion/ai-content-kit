@@ -60,7 +60,7 @@ if (exists(tpl)) {
   ok(`편집/ — HyperFrames ${v} 프로젝트 (${res})`);
 } else fs.mkdirSync(edit, { recursive: true });
 
-write(path.join(dir, '작업.md'), read(p('kit', 'templates', '작업.md'))
+write(path.join(dir, '작업.md'), read(p('kit', 'forms', '작업.md'))
   .replaceAll('{{이름}}', name).replaceAll('{{종류}}', type).replaceAll('{{브랜드}}', brand).replaceAll('{{날짜}}', today())
   .replaceAll('{{요청}}', request || '(요청 원문을 그대로 적는다)')
   .replace('## 5. 기록\n<!--', `## 5. 기록\n${from ? `- [결정] 대표 템플릿에서 시작 — ${from}\n` : ''}<!--`));
