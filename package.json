@@ -1,6 +1,6 @@
 {
   "name": "ai-content-kit-v1",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "description": "레퍼런스 패턴으로 상세페이지 · 릴스 · 롱폼 · 캐러셀 · 광고소재를 만드는 Claude Code 작업 공간",
   "type": "module",
