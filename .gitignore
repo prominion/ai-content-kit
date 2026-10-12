@@ -1,0 +1,17 @@
+# 내 자료 — git에 올리지 않는다 (키트를 업데이트해도 안전)
+/brand/
+/references/
+
+# 작업 폴더 — 종류별 CLAUDE.md만 키트에 포함
+/works/*/*
+!/works/*/CLAUDE.md
+
+# 개인 설정
+.claude/settings.local.json
+
+node_modules/
+.DS_Store
+*.log
+
+# 받은함 — 정리 전 임시
+/inbox/
