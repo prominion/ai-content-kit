@@ -5,5 +5,8 @@
 
 | 파일 | 종류 | 분위기 · 쓰임 | 길이 | 출처 · 라이선스 |
 |---|---|---|---|---|
+| `fonts/Pretendard-Regular · SemiBold · Bold · ExtraBold.woff2` | 폰트 | **키트 기본 글꼴.** 본문 400 · 강조 600 · 제목 700~800. 영상 · GIF · 상세페이지 · 캐러셀 공통 | — | Pretendard v1.3.9 (github.com/orioncactus/pretendard), SIL OFL 1.1 — `fonts/Pretendard-LICENSE.txt` |
 
+기본 글꼴은 Pretendard 하나만 들어 있다. 다른 폰트 · BGM · 효과음은 사용자가 직접 넣는다 (브랜드 전용이면 `brand/<브랜드>/assets/`).
+`npm run new`(영상 종류)와 `npm run gif`는 Pretendard를 작업의 `편집/assets/fonts/`로 복사해 둔다. `@font-face`는 `fonts/pretendard.css`에 있다.
 새 파일을 넣으면 위 표에 한 줄 추가한다. 출처 · 라이선스를 모르는 파일은 넣지 않는다.

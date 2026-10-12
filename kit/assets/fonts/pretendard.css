@@ -1,0 +1,7 @@
+/* Pretendard (SIL OFL 1.1, Pretendard-LICENSE.txt) — 키트 기본 글꼴.
+   HyperFrames 구성에서는 이 @font-face 네 줄을 그 HTML의 <style> 안에 그대로 붙인다 (lint가 같은 파일의 @font-face를 찾는다).
+   폰트 파일은 HTML 기준 assets/fonts/ 에 있어야 한다 (npm run new · npm run gif가 복사해 둔다). */
+@font-face { font-family: "Pretendard"; font-weight: 400; src: url("assets/fonts/Pretendard-Regular.woff2") format("woff2"); }
+@font-face { font-family: "Pretendard"; font-weight: 600; src: url("assets/fonts/Pretendard-SemiBold.woff2") format("woff2"); }
+@font-face { font-family: "Pretendard"; font-weight: 700; src: url("assets/fonts/Pretendard-Bold.woff2") format("woff2"); }
+@font-face { font-family: "Pretendard"; font-weight: 800; src: url("assets/fonts/Pretendard-ExtraBold.woff2") format("woff2"); }
