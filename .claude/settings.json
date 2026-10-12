@@ -23,7 +23,9 @@
       "Bash(npm run check)",
       "Bash(npm run render)",
       "Bash(cd * && npm run *)",
-      "Bash(cd * && npx --yes hyperframes@0.8.144 *)"
+      "Bash(cd * && npx --yes hyperframes@0.8.144 *)",
+      "Bash(npm run transcribe *)",
+      "Bash(yt-dlp *)"
     ]
   }
 }

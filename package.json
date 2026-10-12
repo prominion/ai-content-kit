@@ -14,7 +14,8 @@
     "reference": "node kit/scripts/reference.mjs",
     "works": "node kit/scripts/works.mjs",
     "gif": "node kit/scripts/gif.mjs",
-    "shot": "node kit/scripts/shot.mjs"
+    "shot": "node kit/scripts/shot.mjs",
+    "transcribe": "node kit/scripts/transcribe.mjs"
   },
   "engines": {
     "node": ">=22"

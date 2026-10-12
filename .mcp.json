@@ -1,7 +1,0 @@
-{
-  "mcpServers": {
-    "higgsfield": { "type": "http", "url": "https://mcp.higgsfield.ai/mcp" },
-    "fish-audio": { "type": "http", "url": "https://api.fish.audio/mcp" },
-    "meta-ads": { "type": "http", "url": "https://mcp.facebook.com/ads" }
-  }
-}

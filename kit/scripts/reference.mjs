@@ -90,6 +90,10 @@ if (imgs.length) {
       run('ffmpeg', ['-v', 'error', '-y', '-i', strip, '-vf', `pad=400:${sheetsN * 6000}:0:0:white,crop=400:6000:0:${k * 6000},untile=1x4,tile=4x1:padding=10:color=gray`, '-frames:v', '1', path.join(sheets, `이미지_${String(k + 1).padStart(2, '0')}.jpg`)]);
     }
     ok(`이미지 ${info.length}개 → 시트/이미지_01~${String(sheetsN).padStart(2, '0')}.jpg (이어 붙인 세로 ${Math.round(H)}px)`);
+  } else if (info.length === 1) {
+    // 한 장(계정 격자 캡처 등)은 줄이지 않고 폭 1600 이하로만
+    run('ffmpeg', ['-v', 'error', '-y', '-i', info[0].f, '-frames:v', '1', '-vf', "scale='min(1600,iw)':-2", path.join(sheets, '이미지_01.jpg')]);
+    ok('이미지 1개 → 시트/이미지_01.jpg');
   } else {
     // 장마다 300×375 칸에 맞춰 4×3 격자 (캐러셀 · 캡처 여러 장)
     info.forEach(({ f }, i) => run('ffmpeg', ['-v', 'error', '-y', '-i', f, '-frames:v', '1', '-vf', 'scale=300:375:force_original_aspect_ratio=decrease,pad=300:375:(ow-iw)/2:(oh-ih)/2:white', path.join(tmp, `${String(i).padStart(3, '0')}.png`)]));
