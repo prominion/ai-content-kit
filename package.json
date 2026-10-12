@@ -12,7 +12,9 @@
     "new": "node kit/scripts/new.mjs",
     "check": "node kit/scripts/check.mjs",
     "reference": "node kit/scripts/reference.mjs",
-    "works": "node kit/scripts/works.mjs"
+    "works": "node kit/scripts/works.mjs",
+    "gif": "node kit/scripts/gif.mjs",
+    "shot": "node kit/scripts/shot.mjs"
   },
   "engines": {
     "node": ">=22"

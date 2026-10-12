@@ -17,7 +17,13 @@
       "Bash(npx --yes hyperframes@0.8.144 *)",
       "Bash(npx hyperframes@0.8.144 *)",
       "Bash(ffmpeg *)",
-      "Bash(ffprobe *)"
+      "Bash(ffprobe *)",
+      "Bash(npm run gif *)",
+      "Bash(npm run shot *)",
+      "Bash(npm run check)",
+      "Bash(npm run render)",
+      "Bash(cd * && npm run *)",
+      "Bash(cd * && npx --yes hyperframes@0.8.144 *)"
     ]
   }
 }

@@ -5,7 +5,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {
-  TYPES, VIDEO_TYPES, p, exists, read, write, run, slug, today, hfVersion, brandNames, defaultBrand, brandTemplate, buildWorkLists, ok, bad, warn,
+  TYPES, VIDEO_TYPES, p, exists, read, write, slug, today, hfInit, hfVersion, copyFonts, brandNames, defaultBrand, brandTemplate, buildWorkLists, ok, bad, warn,
 } from './lib.mjs';
 
 const args = process.argv.slice(2);
@@ -46,20 +46,18 @@ const tpl = p('brand', brand, 'templates', type);
 let from = '';
 if (exists(tpl)) {
   fs.cpSync(tpl, edit, { recursive: true, filter: (f) => path.basename(f) !== '템플릿.md' });
-  for (const d of ['renders', 'assets']) if (VIDEO_TYPES.includes(type)) fs.mkdirSync(path.join(edit, d), { recursive: true });
+  if (VIDEO_TYPES.includes(type)) { for (const d of ['renders', 'assets']) fs.mkdirSync(path.join(edit, d), { recursive: true }); copyFonts(edit); }
   from = `brand/${brand}/templates/${type}`;
   ok(`편집/ — 대표 템플릿에서 시작 (${from})`);
 } else if (VIDEO_TYPES.includes(type) && !noHF) {
   const res = type === 'longform' ? 'landscape' : 'portrait';
-  const v = hfVersion();
-  const r = run('npx', ['--yes', `hyperframes@${v}`, 'init', edit, '--non-interactive', '--example=blank', `--resolution=${res}`, '--skill=general-video'],
-    { cwd: p(), env: { ...process.env, HYPERFRAMES_SKIP_SKILLS: '1' } });
-  if (!r.ok) { bad(`HyperFrames 프로젝트를 만들지 못했습니다:\n${(r.err || r.out).slice(0, 500)}`); process.exit(1); }
   // init이 만든 CLAUDE.md(HyperFrames 규칙 · 명령표)는 지우지 않고 키트 규칙을 앞에 붙인다. AGENTS.md도 그대로 둔다
-  const hfClaude = path.join(edit, 'CLAUDE.md');
-  write(hfClaude, `# 편집 (HyperFrames 프로젝트)\n\n규칙은 루트 \`CLAUDE.md\`와 \`works/${type}/CLAUDE.md\`를 따른다. 브리프는 이 폴더의 \`BRIEF.md\`(작업.md에서 만들어짐) — 인터뷰 · 피칭 없이 바로 만든다. \`npx hyperframes …\`와 \`npm run dev / check / render\`는 이 폴더 안에서 실행한다.\n폰트 · 효과음 · 음성은 이 폴더의 \`assets/\`로 복사해서 쓴다 (상위 경로 참조 금지). 렌더는 메인 세션이 한 번에 하나씩 한다.\n\n---\n\n${exists(hfClaude) ? read(hfClaude) : ''}`);
-  for (const d of ['assets', 'compositions', 'renders']) fs.mkdirSync(path.join(edit, d), { recursive: true });
-  ok(`편집/ — HyperFrames ${v} 프로젝트 (${res})`);
+  const r = hfInit(edit, {
+    resolution: res,
+    rules: `- 규칙은 루트 \`CLAUDE.md\`와 \`works/${type}/CLAUDE.md\`를 따른다. 브리프는 이 폴더의 \`BRIEF.md\`(작업.md에서 만들어짐) — 인터뷰 · 피칭 없이 바로 만든다.\n- 렌더는 메인 세션이 한 번에 하나씩 한다.\n`,
+  });
+  if (!r.ok) { bad(`HyperFrames 프로젝트를 만들지 못했습니다:\n${r.err}`); process.exit(1); }
+  ok(`편집/ — HyperFrames ${r.v} 프로젝트 (${res}) · 기본 글꼴 Pretendard`);
 } else fs.mkdirSync(edit, { recursive: true });
 
 write(path.join(dir, '작업.md'), read(p('kit', 'forms', '작업.md'))
@@ -80,7 +78,7 @@ if (VIDEO_TYPES.includes(type)) {
     '## Notes', '', `- 규격 · 기본값: ../../CLAUDE.md (works/${type}/CLAUDE.md). 길이 · 비율은 거기 머리말이 우선.`,
     '- 브리프 · 피칭 · 스토리보드 질문을 하지 않는다. 정한 것은 ../작업.md 「5. 기록」에 적는다.',
     '- 렌더는 메인 세션이 한 번에 하나씩 한다. 렌더 직전 "렌더할까요?" 한 번만 묻는다.',
-    '- 전사는 `npx hyperframes transcribe … --model small --language ko` (기본 모델은 영어로 번역한다).', '',
+    `- 전사는 \`npx --yes hyperframes@${hfVersion()} transcribe … --model small --language ko\` (기본 모델은 영어로 번역한다).`, '',
   ].join('\n'));
 }
 

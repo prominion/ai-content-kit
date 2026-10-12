@@ -34,6 +34,39 @@ export function run(cmd, args, opts = {}) {
   return { ok: r.status === 0, out: (r.stdout || '').trim(), err: (r.stderr || '').trim() };
 }
 
+// 키트 기본 글꼴(Pretendard)을 <dir>/assets/fonts/ 로 복사한다. 이미 있는 파일은 두고, 복사한 개수를 돌려준다
+export function copyFonts(dir) {
+  const src = p('kit', 'assets', 'fonts');
+  const dest = path.join(dir, 'assets', 'fonts');
+  if (!exists(src)) return 0;
+  fs.mkdirSync(dest, { recursive: true });
+  let n = 0;
+  for (const f of fs.readdirSync(src)) {
+    if (!/^Pretendard-/.test(f) || exists(path.join(dest, f))) continue;
+    fs.copyFileSync(path.join(src, f), path.join(dest, f));
+    n++;
+  }
+  return n;
+}
+
+// HyperFrames 프로젝트를 dir에 만든다 (버전 고정 · 전역 스킬 설치 끔). init이 만든 CLAUDE.md는 지우지 않고 키트 규칙을 앞에 붙인다
+export function hfInit(dir, { resolution = 'portrait', skill = 'general-video', rules = '' } = {}) {
+  const v = hfVersion();
+  const r = run('npx', ['--yes', `hyperframes@${v}`, 'init', dir, '--non-interactive', '--example=blank', `--resolution=${resolution}`, `--skill=${skill}`],
+    { cwd: p(), env: { ...process.env, HYPERFRAMES_SKIP_SKILLS: '1' } });
+  if (!r.ok) return { ok: false, err: (r.err || r.out).slice(0, 500) };
+  const claude = path.join(dir, 'CLAUDE.md');
+  write(claude, `# 키트 규칙 (먼저 읽는다 — 아래 HyperFrames 원문과 다르면 이쪽이 우선)\n\n${rules}`
+    + `- **버전 고정**: \`npx hyperframes …\`처럼 버전 없이 부르지 않는다 (최신을 받아 온다). 항상 \`npx --yes hyperframes@${v} …\` 또는 \`npm run check / render / dev\`.\n`
+    + '- **`npx hyperframes skills update`는 쓰지 않는다** (홈 폴더 전역에 설치된다). 스킬은 키트 `.claude/skills/`에 이미 있다. 아래 원문의 "Standalone skill missing or stale?" 안내는 무시한다.\n'
+    + '- 명령은 이 폴더 안에서 실행한다. 폰트 · 효과음 · 음성은 이 폴더 `assets/`로 복사해서 쓴다 (상위 경로 참조 금지).\n'
+    + '- 기본 글꼴은 Pretendard (`assets/fonts/`, `@font-face`는 루트 `kit/assets/fonts/pretendard.css`의 네 줄을 HTML `<style>`에 붙인다).\n'
+    + `\n---\n\n${exists(claude) ? read(claude) : ''}`);
+  for (const d of ['assets', 'compositions', 'renders']) fs.mkdirSync(path.join(dir, d), { recursive: true });
+  copyFonts(dir);
+  return { ok: true, v };
+}
+
 // ffprobe: 길이(초) · 가로 · 세로 · 소리 유무
 export function probe(file) {
   const r = run('ffprobe', ['-v', 'error', '-show_entries', 'format=duration:stream=codec_type,width,height', '-of', 'json', file]);
