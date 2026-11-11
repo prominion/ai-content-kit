@@ -31,20 +31,11 @@
 | `carousel` | `캐러셀-제작` | `캐러셀` |
 | `ad-creative` | `영상광고소재-제작` | `영상광고소재` |
 
-## 어떤 요청에 어떤 스킬
-| 요청 | 스킬 |
-|---|---|
-| 레퍼런스 저장 · 분석 · "이것처럼" · "받은함 정리해줘" | `reference` |
-| 상세페이지 · 랜딩페이지 | `detail-page` |
-| 릴스 · 쇼츠 | `reels` |
-| 유튜브 롱폼 · 가로 영상 편집 (컷 · 합치기 · 자막 · 그래픽 등 요청대로) | `longform` |
-| 캐러셀 · 카드뉴스 | `carousel` |
-| 광고 영상 소재 | `ad-creative` |
-| 내 목소리 학습 · 내레이션 | `voice` |
-| 브랜드 만들기 · "프로필 같이 채우자" · 내 자료를 한꺼번에 주며 "정리해줘" · 이름 바꾸기 · "이 후기 저장해줘" · "브랜드에 저장해줘" · "대표 템플릿으로 해줘" | `brand` |
-| 영상 편집 엔진 (영상 종류 전부 · GIF) | **`hyperframes-core`**(구성 계약)로 `편집/index.html`을 바로 쓴다. 움직임은 `hyperframes-animation`, 명령 상세는 `hyperframes-cli`. `hyperframes` 입구 · `general-video` · `motion-graphics` · `embedded-captions` · `talking-head-recut` 같은 워크플로 스킬은 거치지 않는다 (인터뷰 · 피칭 · `usage` · `upgrade` · `skills update`가 따라온다). "자막 넣어줘" · "그래픽 얹어줘"도 reels · longform 스킬의 일이다 |
-| 같은 종류 여러 개 한꺼번에 ("이 스타일로 릴스 5개") | 에이전트 `maker` — 메인 세션의 순서는 `.claude/agents/maker.md` (아직 실제로 검증하지 않음) |
-| "지금 뭐 만들고 있어?" · "완성된 거 보여줘" | `npm run works` 후 그 브랜드의 `brand/<브랜드>/작업목록.md`를 보여 준다. 전체를 물으면 `works/목록.json`을 읽어 브랜드별로 요약한다 |
+## 스킬 고르기
+요청에 맞는 스킬은 각 스킬 설명으로 고른다. 설명만으로 안 되는 것만 여기 적는다.
+- **영상 편집 엔진** (영상 종류 전부 · GIF): **`hyperframes-core`**(구성 계약)로 `편집/index.html`을 바로 쓴다. 움직임은 `hyperframes-animation`, 명령 상세는 `hyperframes-cli`. `hyperframes` 입구 · `general-video` · `motion-graphics` · `embedded-captions` · `talking-head-recut` 같은 워크플로 스킬은 거치지 않는다 (인터뷰 · 피칭 · `usage` · `upgrade` · `skills update`가 따라온다). "자막 넣어줘" · "그래픽 얹어줘"도 reels · longform 스킬의 일이다.
+- **같은 종류 여러 개 한꺼번에** ("이 스타일로 릴스 5개"): 에이전트 `maker` — 메인 세션의 순서는 `.claude/agents/maker.md` (아직 실제로 검증하지 않음).
+- **"지금 뭐 만들고 있어?" · "완성된 거 보여줘"**: `npm run works` 후 그 브랜드의 `brand/<브랜드>/작업목록.md`를 보여 준다. 전체를 물으면 `works/목록.json`을 읽어 브랜드별로 요약한다.
 
 ## 작업 순서 (모든 종류 공통)
 1. 새 작업: `npm run new -- <종류> "<이름>" [--brand <브랜드>]` → `works/<종류>-제작/<날짜>-<이름>/`. 어느 브랜드 일인지 요청에서 알 수 있으면 `--brand`, 모르면 기본 브랜드. **단 요청한 사업(업종 · 상품)이 기본 브랜드와 분명히 다르면 기본 브랜드에 넣지 않고 한 번 묻는다** ("새 브랜드로 만들까요, ○○ 브랜드 일인가요?"). 그 브랜드에 대표 템플릿이 있으면 `편집/`이 템플릿에서 시작한다 → 모양(레이아웃 · 색 · 글꼴 · 자막)은 템플릿을 따르고, 레퍼런스에서는 후킹 · 구성만 가져온다. **단 요청에 "새 디자인으로" · "이 레퍼런스처럼 디자인" · "모양을 바꿔" 같이 모양을 새로 하라는 말이 있으면 `--no-template`으로 만든다** (템플릿은 그대로 남고, 「5. 기록」에 적힌다).
